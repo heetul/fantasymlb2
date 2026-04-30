@@ -72,7 +72,6 @@
         </table>
     </div>
 
-    <!-- 이하 기능 동일하게 유지 -->
     <div class="filter-section">
         <div class="week-selector">
             <button class="week-btn active" onclick="updateView('Total')">전체 누적(1-5주)</button>
@@ -187,7 +186,7 @@
                        getRank(rawData.Total.pitcher.K_BB[idx], rawData.Total.pitcher.K_BB) +
                        getRank(rawData.Total.pitcher.QS[idx], rawData.Total.pitcher.QS)) / 4;
             
-            const score = Number(((hR + pR) / 2 - t.rank).toFixed(2));
+            const score = Number(((hR + pR) / 2 - t.rank).toFixed(1)); // 소수점 1자리 통일
             return { ...t, score };
         }).sort((a, b) => b.score - a.score);
     }
@@ -195,7 +194,7 @@
     function updateView(v) {
         currentWeek = v;
         document.querySelectorAll('.week-btn').forEach(b => b.classList.toggle('active', b.onclick.toString().includes(v)));
-        renderDashboard();
+        renderDashboard(); // 차트와 테이블 모두 업데이트
     }
 
     function toggleTable(type) {
@@ -208,6 +207,18 @@
     function getGrad(r, t) {
         const ratio = (r - 1) / (t - 1);
         return `rgb(${Math.round(239 + (254 - 239) * ratio)}, ${Math.round(68 + (240 - 68) * ratio)}, ${Math.round(68 + (138 - 68) * ratio)})`;
+    }
+
+    function calcWeekly(curr, prev) {
+        const res = { hitter: {}, pitcher: {} };
+        ['hitter', 'pitcher'].forEach(type => {
+            Object.keys(curr[type]).forEach(k => {
+                res[type][k] = curr[type][k].map((v, i) => 
+                    (['OBP', 'OPS', 'ERA', 'WHIP', 'K_BB'].includes(k)) ? v : Number((v - prev[type][k][i]).toFixed(1))
+                );
+            });
+        });
+        return res;
     }
 
     function renderDashboard() {
@@ -229,18 +240,6 @@
             options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'right', color: '#1e293b', font: { weight: '800' } } } }
         });
         renderTable();
-    }
-
-    function calcWeekly(curr, prev) {
-        const res = { hitter: {}, pitcher: {} };
-        ['hitter', 'pitcher'].forEach(type => {
-            Object.keys(curr[type]).forEach(k => {
-                res[type][k] = curr[type][k].map((v, i) => 
-                    (['OBP', 'OPS', 'ERA', 'WHIP', 'K_BB'].includes(k)) ? v : Number((v - prev[type][k][i]).toFixed(1))
-                );
-            });
-        });
-        return res;
     }
 
     function renderTable() {
@@ -271,7 +270,7 @@
             <div class="manager-card">
                 <span class="top-label">운영 실력 ${i+1}위</span>
                 <span class="team-name">${m.name}</span>
-                <div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score}</div>
+                <div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score.toFixed(1)}</div>
             </div>
         `).join('');
 
@@ -280,10 +279,10 @@
             <tr>
                 <td>${s.rank}</td>
                 <td style="text-align:left;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td>
-                <td>${s.div} 리그</td> <!-- 디비전 명시 -->
+                <td>${s.div} 리그</td>
                 <td>${s.wlt}</td>
                 <td>${s.pct.toFixed(3)}</td>
-                <td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score}</td>
+                <td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score.toFixed(1)}</td>
             </tr>
         `).join('');
         renderDashboard();
