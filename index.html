@@ -20,7 +20,7 @@
         .standings-wrapper { margin-bottom: 40px; border: 2px solid #0f172a; border-radius: 12px; overflow: hidden; }
         .standings-header { background: #0f172a; color: white; padding: 15px; font-weight: 800; text-align: center; font-size: 18px; }
         .standings-table { width: 100%; border-collapse: collapse; }
-        .standings-table th { background: #f1f5f9; padding: 12px; font-size: 13px; }
+        .standings-table th { background: #f1f5f9; padding: 12px; font-size: 13px; color: #475569; }
         .standings-table td { padding: 12px; text-align: center; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
         
         .division-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: normal; }
@@ -60,13 +60,19 @@
         <table class="standings-table">
             <thead>
                 <tr>
-                    <th>Rank</th><th>Team Name</th><th>Division</th><th>W-L-T</th><th>Pct</th><th>운영 실력</th>
+                    <th>Rank</th>
+                    <th>Team Name</th>
+                    <th>Division</th>
+                    <th>W-L-T</th>
+                    <th>Pct (승률)</th>
+                    <th>운영 실력</th>
                 </tr>
             </thead>
             <tbody id="standingsBody"></tbody>
         </table>
     </div>
 
+    <!-- 이하 기능 동일하게 유지 -->
     <div class="filter-section">
         <div class="week-selector">
             <button class="week-btn active" onclick="updateView('Total')">전체 누적(1-5주)</button>
@@ -126,12 +132,12 @@
         teams: leagueStandings.map(s => s.name),
         W1_4: {
             hitter: {
-                R: [94, 80, 102, 110, 111, 108, 87, 85, 113, 94, 83, 114, 89, 115],
-                HR: [29, 21, 29, 35, 37, 25, 24, 27, 24, 18, 11, 28, 19, 29],
-                RBI: [116, 93, 99, 92, 93, 93, 95, 96, 77, 81, 76, 103, 89, 100],
-                SB: [17, 26, 12, 9, 15, 18, 14, 13, 26, 12, 16, 21, 10, 8],
-                OBP: [0.347, 0.325, 0.331, 0.347, 0.344, 0.349, 0.324, 0.336, 0.338, 0.336, 0.307, 0.331, 0.310, 0.336],
-                OPS: [0.804, 0.723, 0.735, 0.809, 0.807, 0.761, 0.709, 0.753, 0.748, 0.731, 0.647, 0.759, 0.656, 0.754]
+                R: [87, 80, 102, 110, 111, 108, 87, 85, 113, 94, 83, 114, 89, 115],
+                HR: [24, 21, 29, 35, 37, 25, 24, 27, 24, 18, 11, 28, 19, 29],
+                RBI: [95, 93, 99, 92, 93, 93, 95, 96, 77, 81, 76, 103, 89, 100],
+                SB: [14, 26, 12, 9, 15, 18, 14, 13, 26, 12, 16, 21, 10, 8],
+                OBP: [0.324, 0.325, 0.331, 0.347, 0.344, 0.349, 0.324, 0.336, 0.338, 0.336, 0.307, 0.331, 0.310, 0.336],
+                OPS: [0.709, 0.723, 0.735, 0.809, 0.807, 0.761, 0.709, 0.753, 0.748, 0.731, 0.647, 0.759, 0.656, 0.754]
             },
             pitcher: {
                 IP: [165, 204.3, 188, 210, 216.7, 170, 223.3, 197.3, 169, 215, 191.7, 179.7, 163.7, 150],
@@ -163,23 +169,6 @@
             }
         }
     };
-
-    function calcWeekly(curr, prev) {
-        const res = { hitter: {}, pitcher: {} };
-        ['hitter', 'pitcher'].forEach(type => {
-            Object.keys(curr[type]).forEach(k => {
-                res[type][k] = curr[type][k].map((v, i) => 
-                    (['OBP', 'OPS', 'ERA', 'WHIP', 'K_BB'].includes(k)) ? v : Number((v - prev[type][k][i]).toFixed(1))
-                );
-            });
-        });
-        return res;
-    }
-
-    const weeklyData = { "Total": rawData.Total, "W1-4": rawData.W1_4, "W5": calcWeekly(rawData.Total, rawData.W1_4) };
-    let currentWeek = 'Total';
-    let currentTableType = 'hitter';
-    let myChart;
 
     function getRank(v, arr, lowGood = false) {
         const sorted = [...arr].sort((a, b) => lowGood ? a - b : b - a);
@@ -223,9 +212,12 @@
 
     function renderDashboard() {
         const stat = document.getElementById('statSelect').value;
-        const data = weeklyData[currentWeek];
+        const currentData = (currentWeek === 'Total') ? rawData.Total : 
+                            (currentWeek === 'W1-4') ? rawData.W1_4 : 
+                            calcWeekly(rawData.Total, rawData.W1_4);
+        
         const ctx = document.getElementById('statChart').getContext('2d');
-        const set = { ...data.hitter, ...data.pitcher };
+        const set = { ...currentData.hitter, ...currentData.pitcher };
         const combined = rawData.teams.map((name, i) => ({ name, val: set[stat][i] }));
         const lowGood = ['ERA', 'WHIP'].includes(stat);
         combined.sort((a, b) => lowGood ? a.val - b.val : b.val - a.val);
@@ -239,9 +231,24 @@
         renderTable();
     }
 
+    function calcWeekly(curr, prev) {
+        const res = { hitter: {}, pitcher: {} };
+        ['hitter', 'pitcher'].forEach(type => {
+            Object.keys(curr[type]).forEach(k => {
+                res[type][k] = curr[type][k].map((v, i) => 
+                    (['OBP', 'OPS', 'ERA', 'WHIP', 'K_BB'].includes(k)) ? v : Number((v - prev[type][k][i]).toFixed(1))
+                );
+            });
+        });
+        return res;
+    }
+
     function renderTable() {
-        const data = weeklyData[currentWeek];
-        const set = currentTableType === 'hitter' ? data.hitter : data.pitcher;
+        const currentData = (currentWeek === 'Total') ? rawData.Total : 
+                            (currentWeek === 'W1-4') ? rawData.W1_4 : 
+                            calcWeekly(rawData.Total, rawData.W1_4);
+        
+        const set = currentTableType === 'hitter' ? currentData.hitter : currentData.pitcher;
         const keys = Object.keys(set);
         let html = '<table><thead><tr><th>Team Name</th>' + keys.map(k => `<th>${k}</th>`).join('') + '</tr></thead><tbody>';
         rawData.teams.forEach((name, idx) => {
@@ -259,6 +266,7 @@
 
     window.onload = () => {
         const pow = calcManagerPower();
+        // Top 3 카드
         document.getElementById('managerTop3').innerHTML = pow.slice(0, 3).map((m, i) => `
             <div class="manager-card">
                 <span class="top-label">운영 실력 ${i+1}위</span>
@@ -266,8 +274,17 @@
                 <div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score}</div>
             </div>
         `).join('');
+
+        // 오버롤 스탠딩 표
         document.getElementById('standingsBody').innerHTML = pow.sort((a, b) => a.rank - b.rank).map(s => `
-            <tr><td>${s.rank}</td><td style="text-align:left;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td><td>${s.wlt}</td><td>${s.pct.toFixed(3)}</td><td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score}</td></tr>
+            <tr>
+                <td>${s.rank}</td>
+                <td style="text-align:left;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td>
+                <td>${s.div} 리그</td> <!-- 디비전 명시 -->
+                <td>${s.wlt}</td>
+                <td>${s.pct.toFixed(3)}</td>
+                <td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score}</td>
+            </tr>
         `).join('');
         renderDashboard();
     };
