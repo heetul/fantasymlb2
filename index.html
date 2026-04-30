@@ -2,12 +2,11 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MLB Fantasy Dashboard v0430</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
-        body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; }
         .container { max-width: 1400px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         h1 { text-align: center; color: #0f172a; margin-bottom: 30px; font-weight: 800; }
         .manager-rank-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
@@ -19,13 +18,13 @@
         .standings-table { width: 100%; border-collapse: collapse; }
         .standings-table th { background: #f1f5f9; padding: 12px; font-size: 13px; color: #475569; }
         .standings-table td { padding: 12px; text-align: center; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
-        .division-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: normal; }
+        .division-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
         .hs-tag { background: #fee2e2; color: #ef4444; }
         .jh-tag { background: #e0f2fe; color: #0ea5e9; }
         .filter-section { margin: 30px 0; text-align: center; }
         .week-selector { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .week-btn { padding: 10px 20px; border: 1px solid #e2e8f0; border-radius: 30px; background: white; cursor: pointer; font-weight: 700; color: #64748b; }
-        .week-btn.active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+        .week-btn.active { background: #ef4444; color: white; border-color: #ef4444; }
         .tab-buttons { display: flex; justify-content: center; margin-bottom: 15px; }
         .tab-buttons button { padding: 14px 40px; cursor: pointer; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; }
         .tab-buttons button.active { background: #f1f5f9; color: #0f172a; border-bottom: 3px solid #ef4444; }
@@ -53,7 +52,7 @@
         <table class="standings-table">
             <thead>
                 <tr>
-                    <th>Rank</th><th>Team Name</th><th>Division</th><th>W-L-T</th><th>Pct</th><th>운영 실력</th>
+                    <th>Rank</th><th>Team Name</th><th>Division</th><th>W-L-T</th><th>Pct (승률)</th><th>운영 실력</th>
                 </tr>
             </thead>
             <tbody id="standingsBody"></tbody>
@@ -78,12 +77,12 @@
         <label>📊 데이터 시각화: </label>
         <select id="statSelect" onchange="renderDashboard()">
             <optgroup label="Hitter Stats">
-                <option value="R">R (득점)</option><option value="HR">HR (홈런)</option><option value="RBI">RBI (타점)</option>
-                <option value="SB">SB (도루)</option><option value="OBP">OBP (출루율)</option><option value="OPS">OPS (장타율 포함)</option>
+                <option value="R">R</option><option value="HR">HR</option><option value="RBI">RBI</option>
+                <option value="SB">SB</option><option value="K_H">K (타자)</option><option value="OBP">OBP</option><option value="OPS">OPS</option>
             </optgroup>
             <optgroup label="Pitcher Stats">
-                <option value="IP">IP (이닝)</option><option value="ERA">ERA (방어율) ↓</option><option value="WHIP">WHIP (출루허용) ↓</option>
-                <option value="K_BB">K/BB (삼진/볼넷)</option><option value="QS">QS (퀄리티 스타트)</option><option value="SV_H">SV+H (세이브+홀드)</option><option value="NW">NW (넷승)</option>
+                <option value="IP">IP</option><option value="ERA">ERA ↓</option><option value="WHIP">WHIP ↓</option>
+                <option value="K_BB">K/BB</option><option value="QS">QS</option><option value="SV_H">SV+H</option><option value="NW">NW</option>
             </optgroup>
         </select>
     </div>
@@ -95,7 +94,6 @@
 <script>
     Chart.register(ChartDataLabels);
 
-    // image_0f9174.png의 순위 순서대로 팀 정보를 배열했습니다.
     const leagueStandings = [
         { rank: 1, name: "Real Twins", div: "현석", wlt: "41-25-4", pct: 0.614 },
         { rank: 2, name: "Murry-Ker Daehyun", div: "지훈", wlt: "38-28-4", pct: 0.571 },
@@ -113,7 +111,6 @@
         { rank: 14, name: "Not Seoul Mayor", div: "지훈", wlt: "26-41-3", pct: 0.393 }
     ];
 
-    // 모든 스탯 데이터를 위 leagueStandings 순서와 1:1 대응하도록 재정렬했습니다.
     const rawData = {
         teams: leagueStandings.map(s => s.name),
         W1_4: {
@@ -122,6 +119,7 @@
                 HR: [29, 21, 29, 35, 37, 25, 24, 27, 24, 18, 11, 28, 19, 29],
                 RBI: [116, 93, 99, 92, 93, 93, 95, 96, 77, 81, 76, 103, 89, 100],
                 SB: [17, 26, 12, 9, 15, 18, 14, 13, 26, 12, 16, 21, 10, 8],
+                K_H: [136, 182, 174, 186, 183, 175, 165, 162, 186, 156, 180, 202, 174, 172],
                 OBP: [0.347, 0.325, 0.331, 0.347, 0.344, 0.349, 0.324, 0.336, 0.338, 0.336, 0.307, 0.331, 0.310, 0.336],
                 OPS: [0.804, 0.723, 0.735, 0.809, 0.807, 0.761, 0.709, 0.753, 0.748, 0.731, 0.647, 0.759, 0.656, 0.754]
             },
@@ -129,7 +127,7 @@
                 IP: [165, 204.3, 188, 210, 216.7, 170, 223.3, 197.3, 169, 215, 191.7, 179.7, 163.7, 150],
                 ERA: [3.33, 3.61, 3.40, 2.91, 4.53, 4.76, 3.99, 4.06, 3.62, 3.60, 4.18, 3.61, 3.90, 4.56],
                 WHIP: [1.06, 1.13, 1.23, 1.15, 1.37, 1.21, 1.22, 1.31, 1.21, 1.30, 1.25, 1.06, 1.33, 1.41],
-                K_BB: [3.24, 3.15, 2.15, 2.83, 2.29, 2.40, 3.22, 2.77, 3.03, 2.47, 2.96, 3.02, 2.26, 2.16],
+                K_BB: [3.54, 3.24, 2.15, 2.83, 2.29, 2.40, 3.22, 2.77, 3.03, 2.47, 2.96, 3.02, 2.26, 2.16],
                 QS: [12, 14, 11, 18, 13, 9, 15, 10, 10, 10, 11, 11, 11, 9],
                 SV_H: [11, 2, 16, 7, 10, 11, 17, 12, 12, 9, 11, 15, 15, 10],
                 NW: [0, 7, 3, 9, -5, 0, -2, -3, 2, 2, -4, 1, 4, -7]
@@ -141,6 +139,7 @@
                 HR: [37, 30, 39, 45, 45, 37, 32, 34, 28, 26, 23, 39, 28, 40],
                 RBI: [145, 122, 123, 115, 127, 129, 124, 121, 104, 100, 103, 139, 113, 131],
                 SB: [17, 33, 19, 11, 24, 23, 22, 17, 32, 14, 22, 27, 13, 9],
+                K_H: [177, 233, 211, 220, 226, 219, 218, 204, 248, 205, 230, 257, 217, 218],
                 OBP: [0.335, 0.333, 0.342, 0.363, 0.344, 0.339, 0.327, 0.334, 0.333, 0.336, 0.313, 0.338, 0.324, 0.339],
                 OPS: [0.782, 0.744, 0.766, 0.832, 0.804, 0.766, 0.716, 0.757, 0.722, 0.734, 0.688, 0.775, 0.694, 0.775]
             },
@@ -156,10 +155,6 @@
         }
     };
 
-    let currentWeek = 'Total';
-    let currentTableType = 'hitter';
-    let myChart;
-
     function getRank(v, arr, lowGood = false) {
         const sorted = [...arr].sort((a, b) => lowGood ? a - b : b - a);
         return sorted.indexOf(v) + 1;
@@ -167,15 +162,26 @@
 
     function calcManagerPower() {
         return leagueStandings.map((t, idx) => {
-            const hR = (getRank(rawData.Total.hitter.R[idx], rawData.Total.hitter.R) + 
-                       getRank(rawData.Total.hitter.HR[idx], rawData.Total.hitter.HR) +
-                       getRank(rawData.Total.hitter.RBI[idx], rawData.Total.hitter.RBI) +
-                       getRank(rawData.Total.hitter.OPS[idx], rawData.Total.hitter.OPS)) / 4;
-            const pR = (getRank(rawData.Total.pitcher.ERA[idx], rawData.Total.pitcher.ERA, true) + 
-                       getRank(rawData.Total.pitcher.WHIP[idx], rawData.Total.pitcher.WHIP, true) +
-                       getRank(rawData.Total.pitcher.K_BB[idx], rawData.Total.pitcher.K_BB) +
-                       getRank(rawData.Total.pitcher.QS[idx], rawData.Total.pitcher.QS)) / 4;
-            const score = Number(((hR + pR) / 2 - t.rank).toFixed(1));
+            // 타자 7개 지표 순위 합산 (K는 적은 순이 1위)
+            const hSum = getRank(rawData.Total.hitter.R[idx], rawData.Total.hitter.R) +
+                        getRank(rawData.Total.hitter.HR[idx], rawData.Total.hitter.HR) +
+                        getRank(rawData.Total.hitter.RBI[idx], rawData.Total.hitter.RBI) +
+                        getRank(rawData.Total.hitter.SB[idx], rawData.Total.hitter.SB) +
+                        getRank(rawData.Total.hitter.K_H[idx], rawData.Total.hitter.K_H, true) +
+                        getRank(rawData.Total.hitter.OBP[idx], rawData.Total.hitter.OBP) +
+                        getRank(rawData.Total.hitter.OPS[idx], rawData.Total.hitter.OPS);
+
+            // 투수 7개 지표 순위 합산 (ERA, WHIP은 적은 순이 1위)
+            const pSum = getRank(rawData.Total.pitcher.IP[idx], rawData.Total.pitcher.IP) +
+                        getRank(rawData.Total.pitcher.ERA[idx], rawData.Total.pitcher.ERA, true) +
+                        getRank(rawData.Total.pitcher.WHIP[idx], rawData.Total.pitcher.WHIP, true) +
+                        getRank(rawData.Total.pitcher.K_BB[idx], rawData.Total.pitcher.K_BB) +
+                        getRank(rawData.Total.pitcher.QS[idx], rawData.Total.pitcher.QS) +
+                        getRank(rawData.Total.pitcher.SV_H[idx], rawData.Total.pitcher.SV_H) +
+                        getRank(rawData.Total.pitcher.NW[idx], rawData.Total.pitcher.NW);
+
+            const avgStatRank = (hSum + pSum) / 14;
+            const score = Number((avgStatRank - t.rank).toFixed(1));
             return { ...t, score };
         }).sort((a, b) => b.score - a.score);
     }
@@ -193,6 +199,11 @@
         renderTable();
     }
 
+    function getGrad(r, t) {
+        const ratio = (r - 1) / (t - 1);
+        return `rgb(${Math.round(239 + (254 - 239) * ratio)}, ${Math.round(68 + (240 - 68) * ratio)}, ${Math.round(68 + (138 - 68) * ratio)})`;
+    }
+
     function calcWeekly(curr, prev) {
         const res = { hitter: {}, pitcher: {} };
         ['hitter', 'pitcher'].forEach(type => {
@@ -205,21 +216,15 @@
         return res;
     }
 
-    function getGrad(r, t) {
-        const ratio = (r - 1) / (t - 1);
-        return `rgb(${Math.round(239 + (254 - 239) * ratio)}, ${Math.round(68 + (240 - 68) * ratio)}, ${Math.round(68 + (138 - 68) * ratio)})`;
-    }
-
     function renderDashboard() {
         const stat = document.getElementById('statSelect').value;
         const currentData = (currentWeek === 'Total') ? rawData.Total : 
                             (currentWeek === 'W1-4') ? rawData.W1_4 : 
                             calcWeekly(rawData.Total, rawData.W1_4);
-        
         const ctx = document.getElementById('statChart').getContext('2d');
         const set = { ...currentData.hitter, ...currentData.pitcher };
         const combined = rawData.teams.map((name, i) => ({ name, val: set[stat][i] }));
-        const lowGood = ['ERA', 'WHIP'].includes(stat);
+        const lowGood = ['ERA', 'WHIP', 'K_H'].includes(stat);
         combined.sort((a, b) => lowGood ? a.val - b.val : b.val - a.val);
 
         if (myChart) myChart.destroy();
@@ -232,21 +237,18 @@
     }
 
     function renderTable() {
-        // 현재 선택된 주차(currentWeek)에 맞는 데이터를 가져오도록 강제합니다.
         const currentData = (currentWeek === 'Total') ? rawData.Total : 
                             (currentWeek === 'W1-4') ? rawData.W1_4 : 
                             calcWeekly(rawData.Total, rawData.W1_4);
-        
         const set = currentTableType === 'hitter' ? currentData.hitter : currentData.pitcher;
         const keys = Object.keys(set);
         let html = '<table><thead><tr><th>Team Name</th>' + keys.map(k => `<th>${k}</th>`).join('') + '</tr></thead><tbody>';
-        
         rawData.teams.forEach((name, idx) => {
             const info = leagueStandings.find(s => s.name === name);
             html += `<tr><td style="text-align:left; font-weight:800; padding-left:15px;">${name} <span class="division-tag ${info.div === '현석' ? 'hs-tag' : 'jh-tag'}">${info.div}</span></td>`;
             keys.forEach(k => {
                 const val = set[k][idx];
-                const r = [...set[k]].sort((a, b) => (['ERA', 'WHIP'].includes(k)) ? a - b : b - a).indexOf(val) + 1;
+                const r = [...set[k]].sort((a, b) => (['ERA', 'WHIP', 'K_H'].includes(k)) ? a - b : b - a).indexOf(val) + 1;
                 html += `<td><div class="rank-cell" style="background:${getGrad(r, 14)};"><span class="stat-val">${val}</span><span class="rank-info">${r}위</span></div></td>`;
             });
             html += '</tr>';
@@ -254,6 +256,7 @@
         document.getElementById('tableContainer').innerHTML = html + '</tbody></table>';
     }
 
+    let myChart;
     window.onload = () => {
         const pow = calcManagerPower();
         document.getElementById('managerTop3').innerHTML = pow.slice(0, 3).map((m, i) => `
