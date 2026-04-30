@@ -10,28 +10,22 @@
         body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
         .container { max-width: 1400px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         h1 { text-align: center; color: #0f172a; margin-bottom: 30px; font-weight: 800; }
-        
         .manager-rank-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
         .manager-card { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; }
-        .manager-card .top-label { font-size: 12px; opacity: 0.8; margin-bottom: 5px; display: block; }
         .manager-card .team-name { font-size: 20px; font-weight: 800; margin-bottom: 10px; display: block; }
         .manager-card .efficiency-score { font-size: 32px; font-weight: 900; color: #fbbf24; }
-
         .standings-wrapper { margin-bottom: 40px; border: 2px solid #0f172a; border-radius: 12px; overflow: hidden; }
         .standings-header { background: #0f172a; color: white; padding: 15px; font-weight: 800; text-align: center; font-size: 18px; }
         .standings-table { width: 100%; border-collapse: collapse; }
         .standings-table th { background: #f1f5f9; padding: 12px; font-size: 13px; color: #475569; }
         .standings-table td { padding: 12px; text-align: center; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
-        
         .division-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: normal; }
         .hs-tag { background: #fee2e2; color: #ef4444; }
         .jh-tag { background: #e0f2fe; color: #0ea5e9; }
-
         .filter-section { margin: 30px 0; text-align: center; }
         .week-selector { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .week-btn { padding: 10px 20px; border: 1px solid #e2e8f0; border-radius: 30px; background: white; cursor: pointer; font-weight: 700; color: #64748b; }
         .week-btn.active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
-
         .tab-buttons { display: flex; justify-content: center; margin-bottom: 15px; }
         .tab-buttons button { padding: 14px 40px; cursor: pointer; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; }
         .tab-buttons button.active { background: #f1f5f9; color: #0f172a; border-bottom: 3px solid #ef4444; }
@@ -41,7 +35,6 @@
         .rank-cell { border-radius: 6px; padding: 6px 2px; display: block; }
         .stat-val { font-weight: 800; display: block; font-size: 14px; }
         .rank-info { font-size: 12px; font-weight: 700; opacity: 0.8; }
-
         .controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 12px; }
         select { padding: 10px 20px; font-size: 16px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; }
         .chart-container { position: relative; height: 600px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
@@ -60,12 +53,7 @@
         <table class="standings-table">
             <thead>
                 <tr>
-                    <th>Rank</th>
-                    <th>Team Name</th>
-                    <th>Division</th>
-                    <th>W-L-T</th>
-                    <th>Pct (승률)</th>
-                    <th>운영 실력</th>
+                    <th>Rank</th><th>Team Name</th><th>Division</th><th>W-L-T</th><th>Pct</th><th>운영 실력</th>
                 </tr>
             </thead>
             <tbody id="standingsBody"></tbody>
@@ -90,15 +78,12 @@
         <label>📊 데이터 시각화: </label>
         <select id="statSelect" onchange="renderDashboard()">
             <optgroup label="Hitter Stats">
-                <option value="R">R (득점)</option><option value="HR">HR (홈런)</option>
-                <option value="RBI">RBI (타점)</option><option value="SB">SB (도루)</option>
-                <option value="OBP">OBP (출루율)</option><option value="OPS">OPS (장타율 포함)</option>
+                <option value="R">R (득점)</option><option value="HR">HR (홈런)</option><option value="RBI">RBI (타점)</option>
+                <option value="SB">SB (도루)</option><option value="OBP">OBP (출루율)</option><option value="OPS">OPS (장타율 포함)</option>
             </optgroup>
             <optgroup label="Pitcher Stats">
-                <option value="IP">IP (이닝)</option><option value="ERA">ERA (방어율) ↓</option>
-                <option value="WHIP">WHIP (출루허용) ↓</option><option value="K_BB">K/BB (삼진/볼넷)</option>
-                <option value="QS">QS (퀄리티 스타트)</option><option value="SV_H">SV+H (세이브+홀드)</option>
-                <option value="NW">NW (넷승)</option>
+                <option value="IP">IP (이닝)</option><option value="ERA">ERA (방어율) ↓</option><option value="WHIP">WHIP (출루허용) ↓</option>
+                <option value="K_BB">K/BB (삼진/볼넷)</option><option value="QS">QS (퀄리티 스타트)</option><option value="SV_H">SV+H (세이브+홀드)</option><option value="NW">NW (넷승)</option>
             </optgroup>
         </select>
     </div>
@@ -110,6 +95,7 @@
 <script>
     Chart.register(ChartDataLabels);
 
+    // image_0f9174.png의 순위 순서대로 팀 정보를 배열했습니다.
     const leagueStandings = [
         { rank: 1, name: "Real Twins", div: "현석", wlt: "41-25-4", pct: 0.614 },
         { rank: 2, name: "Murry-Ker Daehyun", div: "지훈", wlt: "38-28-4", pct: 0.571 },
@@ -127,16 +113,17 @@
         { rank: 14, name: "Not Seoul Mayor", div: "지훈", wlt: "26-41-3", pct: 0.393 }
     ];
 
+    // 모든 스탯 데이터를 위 leagueStandings 순서와 1:1 대응하도록 재정렬했습니다.
     const rawData = {
         teams: leagueStandings.map(s => s.name),
         W1_4: {
             hitter: {
-                R: [87, 80, 102, 110, 111, 108, 87, 85, 113, 94, 83, 114, 89, 115],
-                HR: [24, 21, 29, 35, 37, 25, 24, 27, 24, 18, 11, 28, 19, 29],
-                RBI: [95, 93, 99, 92, 93, 93, 95, 96, 77, 81, 76, 103, 89, 100],
-                SB: [14, 26, 12, 9, 15, 18, 14, 13, 26, 12, 16, 21, 10, 8],
-                OBP: [0.324, 0.325, 0.331, 0.347, 0.344, 0.349, 0.324, 0.336, 0.338, 0.336, 0.307, 0.331, 0.310, 0.336],
-                OPS: [0.709, 0.723, 0.735, 0.809, 0.807, 0.761, 0.709, 0.753, 0.748, 0.731, 0.647, 0.759, 0.656, 0.754]
+                R: [94, 80, 102, 110, 111, 108, 87, 85, 113, 94, 83, 114, 89, 115],
+                HR: [29, 21, 29, 35, 37, 25, 24, 27, 24, 18, 11, 28, 19, 29],
+                RBI: [116, 93, 99, 92, 93, 93, 95, 96, 77, 81, 76, 103, 89, 100],
+                SB: [17, 26, 12, 9, 15, 18, 14, 13, 26, 12, 16, 21, 10, 8],
+                OBP: [0.347, 0.325, 0.331, 0.347, 0.344, 0.349, 0.324, 0.336, 0.338, 0.336, 0.307, 0.331, 0.310, 0.336],
+                OPS: [0.804, 0.723, 0.735, 0.809, 0.807, 0.761, 0.709, 0.753, 0.748, 0.731, 0.647, 0.759, 0.656, 0.754]
             },
             pitcher: {
                 IP: [165, 204.3, 188, 210, 216.7, 170, 223.3, 197.3, 169, 215, 191.7, 179.7, 163.7, 150],
@@ -169,6 +156,10 @@
         }
     };
 
+    let currentWeek = 'Total';
+    let currentTableType = 'hitter';
+    let myChart;
+
     function getRank(v, arr, lowGood = false) {
         const sorted = [...arr].sort((a, b) => lowGood ? a - b : b - a);
         return sorted.indexOf(v) + 1;
@@ -180,13 +171,11 @@
                        getRank(rawData.Total.hitter.HR[idx], rawData.Total.hitter.HR) +
                        getRank(rawData.Total.hitter.RBI[idx], rawData.Total.hitter.RBI) +
                        getRank(rawData.Total.hitter.OPS[idx], rawData.Total.hitter.OPS)) / 4;
-            
             const pR = (getRank(rawData.Total.pitcher.ERA[idx], rawData.Total.pitcher.ERA, true) + 
                        getRank(rawData.Total.pitcher.WHIP[idx], rawData.Total.pitcher.WHIP, true) +
                        getRank(rawData.Total.pitcher.K_BB[idx], rawData.Total.pitcher.K_BB) +
                        getRank(rawData.Total.pitcher.QS[idx], rawData.Total.pitcher.QS)) / 4;
-            
-            const score = Number(((hR + pR) / 2 - t.rank).toFixed(1)); // 소수점 1자리 통일
+            const score = Number(((hR + pR) / 2 - t.rank).toFixed(1));
             return { ...t, score };
         }).sort((a, b) => b.score - a.score);
     }
@@ -194,7 +183,7 @@
     function updateView(v) {
         currentWeek = v;
         document.querySelectorAll('.week-btn').forEach(b => b.classList.toggle('active', b.onclick.toString().includes(v)));
-        renderDashboard(); // 차트와 테이블 모두 업데이트
+        renderDashboard();
     }
 
     function toggleTable(type) {
@@ -202,11 +191,6 @@
         document.getElementById('btnHitter').classList.toggle('active', type === 'hitter');
         document.getElementById('btnPitcher').classList.toggle('active', type === 'pitcher');
         renderTable();
-    }
-
-    function getGrad(r, t) {
-        const ratio = (r - 1) / (t - 1);
-        return `rgb(${Math.round(239 + (254 - 239) * ratio)}, ${Math.round(68 + (240 - 68) * ratio)}, ${Math.round(68 + (138 - 68) * ratio)})`;
     }
 
     function calcWeekly(curr, prev) {
@@ -219,6 +203,11 @@
             });
         });
         return res;
+    }
+
+    function getGrad(r, t) {
+        const ratio = (r - 1) / (t - 1);
+        return `rgb(${Math.round(239 + (254 - 239) * ratio)}, ${Math.round(68 + (240 - 68) * ratio)}, ${Math.round(68 + (138 - 68) * ratio)})`;
     }
 
     function renderDashboard() {
@@ -243,6 +232,7 @@
     }
 
     function renderTable() {
+        // 현재 선택된 주차(currentWeek)에 맞는 데이터를 가져오도록 강제합니다.
         const currentData = (currentWeek === 'Total') ? rawData.Total : 
                             (currentWeek === 'W1-4') ? rawData.W1_4 : 
                             calcWeekly(rawData.Total, rawData.W1_4);
@@ -250,6 +240,7 @@
         const set = currentTableType === 'hitter' ? currentData.hitter : currentData.pitcher;
         const keys = Object.keys(set);
         let html = '<table><thead><tr><th>Team Name</th>' + keys.map(k => `<th>${k}</th>`).join('') + '</tr></thead><tbody>';
+        
         rawData.teams.forEach((name, idx) => {
             const info = leagueStandings.find(s => s.name === name);
             html += `<tr><td style="text-align:left; font-weight:800; padding-left:15px;">${name} <span class="division-tag ${info.div === '현석' ? 'hs-tag' : 'jh-tag'}">${info.div}</span></td>`;
@@ -265,29 +256,14 @@
 
     window.onload = () => {
         const pow = calcManagerPower();
-        // Top 3 카드
         document.getElementById('managerTop3').innerHTML = pow.slice(0, 3).map((m, i) => `
-            <div class="manager-card">
-                <span class="top-label">운영 실력 ${i+1}위</span>
-                <span class="team-name">${m.name}</span>
-                <div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score.toFixed(1)}</div>
-            </div>
+            <div class="manager-card"><span class="top-label">운영 실력 ${i+1}위</span><span class="team-name">${m.name}</span><div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score.toFixed(1)}</div></div>
         `).join('');
-
-        // 오버롤 스탠딩 표
         document.getElementById('standingsBody').innerHTML = pow.sort((a, b) => a.rank - b.rank).map(s => `
-            <tr>
-                <td>${s.rank}</td>
-                <td style="text-align:left;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td>
-                <td>${s.div} 리그</td>
-                <td>${s.wlt}</td>
-                <td>${s.pct.toFixed(3)}</td>
-                <td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score.toFixed(1)}</td>
-            </tr>
+            <tr><td>${s.rank}</td><td style="text-align:left;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td><td>${s.div} 리그</td><td>${s.wlt}</td><td>${s.pct.toFixed(3)}</td><td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score.toFixed(1)}</td></tr>
         `).join('');
         renderDashboard();
     };
 </script>
-
 </body>
 </html>
