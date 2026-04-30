@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLB Fantasy - Managerial Excellence Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        /* 기존 스타일 유지 및 운영 랭킹용 스타일 추가 */
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
+        .container { max-width: 1400px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        h1 { text-align: center; color: #0f172a; margin-bottom: 30px; font-weight: 800; }
+        
+        /* 운영 실력 랭킹 카드 */
+        .manager-rank-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .manager-card { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 20px; border-radius: 15px; position: relative; overflow: hidden; }
+        .manager-card .top-label { font-size: 12px; text-transform: uppercase; opacity: 0.8; margin-bottom: 5px; display: block; }
+        .manager-card .team-name { font-size: 20px; font-weight: 800; margin-bottom: 10px; display: block; }
+        .manager-card .efficiency-score { font-size: 32px; font-weight: 900; color: #fbbf24; }
+        
+        /* 기존 테이블 및 버튼 스타일 */
+        .standings-wrapper { margin-bottom: 40px; border: 2px solid #0f172a; border-radius: 12px; overflow: hidden; }
+        .standings-header { background: #0f172a; color: white; padding: 15px; font-weight: 800; text-align: center; }
+        .standings-table { width: 100%; border-collapse: collapse; }
+        .standings-table th { background: #f1f5f9; padding: 12px; font-size: 13px; }
+        .standings-table td { padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
+        .division-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
+        .hs-tag { background: #fee2e2; color: #ef4444; }
+        .jh-tag { background: #e0f2fe; color: #0ea5e9; }
+
+        .tab-buttons { display: flex; justify-content: center; margin-bottom: 15px; }
+        .tab-buttons button { padding: 14px 40px; cursor: pointer; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; transition: 0.2s; }
+        .tab-buttons button.active { background: #f1f5f9; color: #0f172a; border-bottom: 3px solid #ef4444; }
+
+        .table-wrapper { overflow-x: auto; margin-bottom: 50px; border: 1px solid #e2e8f0; border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        th, td { padding: 12px 6px; text-align: center; border: 1px solid #f1f5f9; }
+        .rank-cell { border-radius: 6px; padding: 6px 2px; display: block; color: #000; }
+        .stat-val { font-weight: 800; display: block; font-size: 14px; }
+        .rank-info { font-size: 11px; font-weight: 700; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚾ Managerial Efficiency Dashboard</h1>
+
+    <!-- [신규] 운영 실력 TOP 3 섹션 -->
+    <h2 style="text-align:center; font-size: 20px; color: #475569;">🥇 구단주 운영 실력 TOP 3</h2>
+    <div class="manager-rank-section" id="managerTop3">
+        <!-- JS에서 자동 계산되어 삽입됨 -->
+    </div>
+
+    <!-- 전체 순위표 -->
+    <div class="standings-wrapper">
+        <div class="standings-header">📊 Overall Standings & Manager Score</div>
+        <table class="standings-table">
+            <thead>
+                <tr>
+                    <th>Rank</th><th>Team Name</th><th>W-L-T</th><th>Pct</th><th>Manager Score</th>
+                </tr>
+            </thead>
+            <tbody id="standingsBody"></tbody>
+        </table>
+    </div>
+
+    <div class="tab-buttons">
+        <button id="btnHitter" class="active" onclick="toggleTable('hitter')">타자 지표</button>
+        <button id="btnPitcher" onclick="toggleTable('pitcher')">투수 지표</button>
+    </div>
+    <div id="tableContainer" class="table-wrapper"></div>
+</div>
+
+<script>
+    Chart.register(ChartDataLabels);
+
+    // [데이터 연동] image_0f9174.png (순위) + image_9849b7, image_984982 (스탯)
+    const leagueStandings = [
+        { rank: 1, name: "Real Twins", div: "현석", wlt: "41-25-4", pct: 0.614 },
+        { rank: 2, name: "Murry-Ker Daehyun", div: "지훈", wlt: "38-28-4", pct: 0.571 },
+        { rank: 3, name: "Sleeping Jihoo", div: "현석", wlt: "42-27-1", pct: 0.607 },
+        { rank: 4, name: "10 LuckyVickies", div: "현석", wlt: "39-27-4", pct: 0.586 },
+        { rank: 5, name: "Multi Champion", div: "현석", wlt: "36-27-7", pct: 0.564 },
+        { rank: 6, name: "Sakers_sAviOr", div: "지훈", wlt: "37-28-5", pct: 0.564 },
+        { rank: 7, name: "Cho Biden", div: "현석", wlt: "34-34-2", pct: 0.500 },
+        { rank: 8, name: "Chief Residents", div: "지훈", wlt: "31-34-5", pct: 0.479 },
+        { rank: 9, name: "Kook Surfer", div: "현석", wlt: "30-35-5", pct: 0.464 },
+        { rank: 10, name: "HanManDoo Jr.", div: "현석", wlt: "28-39-3", pct: 0.421 },
+        { rank: 11, name: "daily sia", div: "지훈", wlt: "27-39-4", pct: 0.414 },
+        { rank: 12, name: "Make MooMool Great Again", div: "지훈", wlt: "25-37-8", pct: 0.414 },
+        { rank: 13, name: "Yubu airdoshi", div: "지훈", wlt: "25-38-7", pct: 0.407 },
+        { rank: 14, name: "Not Seoul Mayor", div: "지훈", wlt: "26-41-3", pct: 0.393 }
+    ];
+
+    const stats = {
+        hitter: {
+            R: [121, 119, 131, 150, 139, 143, 110, 111, 140, 121, 109, 158, 119, 150],
+            HR: [37, 30, 39, 45, 45, 37, 32, 34, 28, 26, 23, 39, 28, 40],
+            OPS: [0.782, 0.744, 0.766, 0.832, 0.804, 0.766, 0.716, 0.757, 0.722, 0.734, 0.688, 0.775, 0.694, 0.775]
+        },
+        pitcher: {
+            ERA: [3.84, 3.66, 4.10, 3.36, 4.34, 4.17, 3.98, 4.44, 3.98, 3.78, 3.77, 3.85, 4.04, 4.52],
+            WHIP: [1.10, 1.15, 1.33, 1.17, 1.32, 1.23, 1.25, 1.42, 1.22, 1.27, 1.21, 1.08, 1.33, 1.44]
+        }
+    };
+
+    // 운영 실력 점수 계산 함수
+    function calculateEfficiency() {
+        const results = leagueStandings.map((team, idx) => {
+            // 1. 스탯 순위 평균 구하기
+            const hRank = (getRank(stats.hitter.R[idx], stats.hitter.R) + getRank(stats.hitter.OPS[idx], stats.hitter.OPS)) / 2;
+            const pRank = (getRank(stats.pitcher.ERA[idx], stats.pitcher.ERA, true) + getRank(stats.pitcher.WHIP[idx], stats.pitcher.WHIP, true)) / 2;
+            const avgStatRank = (hRank + pRank) / 2;
+
+            // 2. 운영 효율 점수 = (스탯 순위 평균 - 실제 리그 순위)
+            // 지표는 최하위권인데 순위가 높다면 운영을 매우 잘하고 있는 것
+            const efficiencyScore = Number((avgStatRank - team.rank).toFixed(2));
+            
+            return { ...team, score: efficiencyScore, avgStat: avgStatRank };
+        });
+
+        return results.sort((a, b) => b.score - a.score);
+    }
+
+    function getRank(value, array, isLowerBetter = false) {
+        const sorted = [...array].sort((a, b) => isLowerBetter ? a - b : b - a);
+        return sorted.indexOf(value) + 1;
+    }
+
+    function renderManagerRanking() {
+        const sortedManagers = calculateEfficiency();
+        
+        // TOP 3 카드
+        const top3Container = document.getElementById('managerTop3');
+        top3Container.innerHTML = sortedManagers.slice(0, 3).map((m, i) => `
+            <div class="manager-card">
+                <span class="top-label">${i+1}위 운영 효율</span>
+                <span class="team-name">${m.name}</span>
+                <div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score} pt</div>
+                <p style="font-size: 11px; margin-top: 10px;">지표 대비 순위 ${m.score}계단 상회</p>
+            </div>
+        `).join('');
+
+        // 순위표 업데이트
+        document.getElementById('standingsBody').innerHTML = sortedManagers.sort((a,b) => a.rank - b.rank).map(s => `
+            <tr>
+                <td>${s.rank}</td>
+                <td style="text-align:left;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td>
+                <td>${s.wlt}</td>
+                <td>${s.pct.toFixed(3)}</td>
+                <td style="color: ${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score}</td>
+            </tr>
+        `).join('');
+    }
+
+    // 기존 테이블 렌더링 함수 유지
+    function toggleTable(type) {
+        currentTableType = type;
+        document.getElementById('btnHitter').classList.toggle('active', type === 'hitter');
+        document.getElementById('btnPitcher').classList.toggle('active', type === 'pitcher');
+        renderStatTable(type);
+    }
+
+    function renderStatTable(type) {
+        const dataSet = stats[type];
+        const keys = Object.keys(dataSet);
+        const teamNames = leagueStandings.map(s => s.name);
+        
+        let html = '<table><thead><tr><th>Team Name</th>' + keys.map(k => `<th>${k}</th>`).join('') + '</tr></thead><tbody>';
+        teamNames.forEach((name, idx) => {
+            html += `<tr><td style="text-align:left; font-weight:800;">${name}</td>`;
+            keys.forEach(k => {
+                const val = dataSet[k][idx];
+                const isLowerBetter = (k === 'ERA' || k === 'WHIP');
+                const rank = getRank(val, dataSet[k], isLowerBetter);
+                html += `<td><div class="rank-cell" style="background:${getGradientColor(rank, 14)};"><span class="stat-val">${val}</span><span class="rank-info">${rank}위</span></div></td>`;
+            });
+            html += '</tr>';
+        });
+        document.getElementById('tableContainer').innerHTML = html + '</tbody></table>';
+    }
+
+    function getGradientColor(rank, total) {
+        const ratio = (rank - 1) / (total - 1); 
+        return `rgb(${Math.round(239 + (254 - 239) * ratio)}, ${Math.round(68 + (240 - 68) * ratio)}, ${Math.round(68 + (138 - 68) * ratio)})`;
+    }
+
+    window.onload = () => {
+        renderManagerRanking();
+        renderStatTable('hitter');
+    };
+</script>
+
+</body>
+</html>
