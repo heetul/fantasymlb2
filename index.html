@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Fantasy Dashboard v0505</title>
+    <title>MLB Fantasy Dashboard v0513</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
@@ -43,13 +43,13 @@
 <body>
 
 <div class="container">
-    <h1>⚾ MLB Fantasy Dashboard v0505</h1>
+    <h1>⚾ MLB Fantasy Dashboard v0513</h1>
 
-    <h2 style="text-align:center; font-size: 20px; color: #475569;">🥇 구단주 운영 실력 TOP 3</h2>
+    <h2 style="text-align:center; font-size: 20px; color: #475569;">🥇 구단주 운영 실력 TOP 3 (7주 누적)</h2>
     <div class="manager-rank-section" id="managerTop3"></div>
 
     <div class="standings-wrapper">
-        <div class="standings-header">🏆 Overall Standing (6주차 누적 기록 기준)</div>
+        <div class="standings-header">🏆 Overall Standing (7주차 누적 기준)</div>
         <table class="standings-table">
             <thead>
                 <tr>
@@ -62,10 +62,11 @@
 
     <div class="filter-section">
         <div class="week-selector">
-            <button class="week-btn active" onclick="updateView('Total')">전체 누적(1-6주)</button>
+            <button class="week-btn active" onclick="updateView('Total')">전체 누적(1-7주)</button>
             <button class="week-btn" onclick="updateView('W1-4')">1-4주차 통합</button>
             <button class="week-btn" onclick="updateView('W5')">5주차 Weekly</button>
             <button class="week-btn" onclick="updateView('W6')">6주차 Weekly</button>
+            <button class="week-btn" onclick="updateView('W7')">7주차 Weekly</button>
         </div>
     </div>
 
@@ -97,108 +98,41 @@
     Chart.register(ChartDataLabels);
 
     const leagueStandings = [
-        { rank: 1, name: "Real Twins", div: "현석", wlt: "48-31-5", pct: 0.601 },
-        { rank: 2, name: "Murry-Ker Daehyun", div: "지훈", wlt: "48-32-4", pct: 0.595 },
-        { rank: 3, name: "Sleeping Jihoo", div: "현석", wlt: "47-36-1", pct: 0.565 },
-        { rank: 4, name: "10 LuckyVickies", div: "현석", wlt: "44-36-4", pct: 0.548 },
-        { rank: 5, name: "Sakers_sAviOr", div: "지훈", wlt: "41-37-6", pct: 0.524 },
-        { rank: 6, name: "Multi Champion", div: "현석", wlt: "40-37-7", pct: 0.518 },
-        { rank: 7, name: "Kook Surfer", div: "현석", wlt: "39-40-5", pct: 0.494 },
-        { rank: 8, name: "Chief Residents", div: "지훈", wlt: "38-39-7", pct: 0.494 },
-        { rank: 9, name: "Cho Biden", div: "현석", wlt: "40-41-3", pct: 0.494 },
-        { rank: 10, name: "daily sia", div: "지훈", wlt: "36-43-5", pct: 0.458 },
-        { rank: 11, name: "HanManDoo Jr.", div: "현석", wlt: "37-44-3", pct: 0.458 },
-        { rank: 12, name: "Not Seoul Mayor", div: "지훈", wlt: "33-47-4", pct: 0.417 },
-        { rank: 13, name: "Yubu airdoshi", div: "지훈", wlt: "31-45-8", pct: 0.417 },
-        { rank: 14, name: "Make MooMool Great Again", div: "지훈", wlt: "30-44-10", pct: 0.417 }
+        { rank: 1, name: "Murry-Ker Daehyun", div: "지훈", wlt: "56-38-4", pct: 0.592 },
+        { rank: 2, name: "Sleeping Jihoo", div: "현석", wlt: "55-41-2", pct: 0.571 },
+        { rank: 3, name: "Real Twins", div: "현석", wlt: "53-39-6", pct: 0.571 },
+        { rank: 4, name: "10 LuckyVickies", div: "현석", wlt: "53-41-4", pct: 0.561 },
+        { rank: 5, name: "Multi Champion", div: "현석", wlt: "50-41-7", pct: 0.546 },
+        { rank: 6, name: "Chief Residents", div: "지훈", wlt: "47-42-9", pct: 0.526 },
+        { rank: 7, name: "Cho Biden", div: "현석", wlt: "50-45-3", pct: 0.526 },
+        { rank: 8, name: "daily sia", div: "지훈", wlt: "47-46-5", pct: 0.505 },
+        { rank: 9, name: "Orange", div: "지훈", wlt: "45-47-6", pct: 0.490 },
+        { rank: 10, name: "Kook Surfer", div: "현석", wlt: "45-48-5", pct: 0.485 },
+        { rank: 11, name: "HanManDoo Jr.", div: "현석", wlt: "40-53-5", pct: 0.434 },
+        { rank: 12, name: "Make MooMool Great Again", div: "지훈", wlt: "35-53-10", pct: 0.408 },
+        { rank: 13, name: "Yubu airdoshi", div: "지훈", wlt: "35-55-8", pct: 0.398 },
+        { rank: 14, name: "Not Seoul Mayor", div: "지훈", wlt: "36-58-4", pct: 0.388 }
     ];
 
     const rawData = {
         teams: leagueStandings.map(s => s.name),
         W1_4: {
-            hitter: {
-                R: [94, 80, 102, 110, 111, 108, 87, 85, 113, 94, 83, 114, 89, 115],
-                HR: [29, 21, 29, 35, 37, 25, 24, 27, 24, 18, 11, 28, 19, 29],
-                RBI: [116, 93, 99, 92, 93, 93, 95, 96, 77, 81, 76, 103, 89, 100],
-                SB: [17, 26, 12, 9, 15, 18, 14, 13, 26, 12, 16, 21, 10, 8],
-                K_H: [136, 182, 174, 186, 183, 175, 165, 162, 186, 156, 180, 202, 174, 172],
-                OBP: [0.347, 0.325, 0.331, 0.347, 0.344, 0.349, 0.324, 0.336, 0.338, 0.336, 0.307, 0.331, 0.310, 0.336],
-                OPS: [0.804, 0.723, 0.735, 0.809, 0.807, 0.761, 0.709, 0.753, 0.748, 0.731, 0.647, 0.759, 0.656, 0.754]
-            },
-            pitcher: {
-                IP: [165, 204.3, 188, 210, 216.7, 170, 223.3, 197.3, 169, 215, 191.7, 179.7, 163.7, 150],
-                ERA: [3.33, 3.61, 3.40, 2.91, 4.53, 4.76, 3.99, 4.06, 3.62, 3.60, 4.18, 3.61, 3.90, 4.56],
-                WHIP: [1.06, 1.13, 1.23, 1.15, 1.37, 1.21, 1.22, 1.31, 1.21, 1.30, 1.25, 1.06, 1.33, 1.41],
-                K_BB: [3.24, 3.15, 2.15, 2.83, 2.29, 2.40, 3.22, 2.77, 3.03, 2.47, 2.96, 3.02, 2.26, 2.16],
-                QS: [12, 14, 11, 18, 13, 9, 15, 10, 10, 10, 11, 11, 11, 9],
-                SV_H: [11, 2, 16, 7, 10, 11, 17, 12, 12, 9, 11, 15, 15, 10],
-                NW: [0, 7, 3, 9, -5, 0, -2, -3, 2, 2, -4, 1, 4, -7]
-            }
+            hitter: { R: [80, 102, 94, 110, 111, 85, 87, 83, 108, 113, 94, 114, 89, 115], HR: [21, 29, 29, 35, 37, 27, 24, 11, 25, 24, 18, 28, 19, 29], RBI: [93, 99, 116, 92, 93, 96, 95, 76, 93, 77, 81, 103, 89, 100], SB: [26, 12, 17, 9, 15, 13, 14, 16, 18, 26, 12, 21, 10, 8], K_H: [182, 174, 136, 186, 183, 162, 165, 180, 175, 186, 156, 202, 174, 172], OBP: [0.325, 0.331, 0.347, 0.347, 0.344, 0.336, 0.324, 0.307, 0.349, 0.338, 0.336, 0.331, 0.310, 0.336], OPS: [0.723, 0.735, 0.804, 0.809, 0.807, 0.753, 0.709, 0.647, 0.761, 0.748, 0.731, 0.759, 0.656, 0.754] },
+            pitcher: { IP: [204.3, 188, 165, 210, 216.7, 197.3, 223.3, 191.7, 170, 169, 215, 179.7, 163.7, 150], ERA: [3.61, 3.40, 3.33, 2.91, 4.53, 4.06, 3.99, 4.18, 4.76, 3.62, 3.60, 3.61, 3.90, 4.56], WHIP: [1.13, 1.23, 1.06, 1.15, 1.37, 1.31, 1.22, 1.25, 1.21, 1.21, 1.30, 1.06, 1.33, 1.41], K_BB: [3.24, 2.15, 3.54, 2.83, 2.29, 2.77, 3.22, 2.96, 2.40, 3.03, 2.47, 3.02, 2.26, 2.16], QS: [14, 11, 12, 18, 13, 10, 15, 11, 9, 10, 10, 11, 11, 9], SV_H: [2, 16, 11, 7, 10, 12, 17, 11, 11, 12, 9, 15, 15, 10], NW: [7, 3, 0, 9, -5, -3, -2, -4, 0, 2, 2, 1, 4, -7] }
         },
         W5_Cumu: {
-            hitter: {
-                R: [121, 119, 131, 150, 143, 139, 140, 111, 110, 109, 121, 150, 119, 158],
-                HR: [37, 30, 39, 45, 37, 45, 28, 34, 32, 23, 26, 40, 28, 39],
-                RBI: [145, 122, 123, 115, 129, 127, 104, 121, 124, 103, 100, 131, 113, 139],
-                SB: [17, 33, 19, 11, 23, 24, 32, 17, 22, 22, 14, 9, 13, 27],
-                K_H: [177, 233, 211, 220, 219, 226, 248, 204, 218, 230, 205, 218, 217, 257],
-                OBP: [0.335, 0.333, 0.342, 0.363, 0.339, 0.344, 0.333, 0.334, 0.327, 0.313, 0.336, 0.339, 0.324, 0.338],
-                OPS: [0.782, 0.744, 0.766, 0.832, 0.766, 0.804, 0.722, 0.757, 0.716, 0.688, 0.734, 0.775, 0.694, 0.775]
-            },
-            pitcher: {
-                IP: [211, 260.3, 261, 283.3, 233, 267.3, 214.3, 261.2, 285, 253, 273.3, 199.3, 196.7, 236.3],
-                ERA: [3.84, 3.66, 4.10, 3.36, 4.17, 4.34, 3.98, 4.44, 3.98, 3.77, 3.78, 4.52, 4.04, 3.85],
-                WHIP: [1.10, 1.15, 1.33, 1.17, 1.23, 1.32, 1.22, 1.42, 1.25, 1.21, 1.27, 1.44, 1.33, 1.08],
-                K_BB: [3.24, 3.15, 2.19, 2.78, 2.37, 2.46, 3.01, 2.35, 3.15, 3.02, 2.79, 2.16, 2.41, 3.10],
-                QS: [15, 19, 16, 22, 14, 16, 13, 13, 18, 17, 12, 12, 13, 14],
-                SV_H: [14, 2, 21, 10, 14, 14, 15, 13, 24, 14, 9, 16, 16, 21],
-                NW: [0, 6, 4, 8, 5, -6, 0, -4, 1, 0, 4, -7, 1, 0]
-            }
+            hitter: { R: [119, 131, 121, 150, 139, 111, 110, 109, 143, 140, 121, 158, 119, 150], HR: [30, 39, 37, 45, 45, 34, 32, 23, 37, 28, 26, 39, 28, 40], RBI: [122, 123, 145, 115, 127, 121, 124, 103, 129, 104, 100, 139, 113, 131], SB: [33, 19, 17, 11, 24, 17, 22, 22, 23, 32, 14, 27, 13, 9], K_H: [233, 211, 177, 220, 226, 204, 218, 230, 219, 248, 205, 257, 217, 218], OBP: [0.333, 0.342, 0.335, 0.363, 0.344, 0.334, 0.327, 0.313, 0.339, 0.333, 0.336, 0.338, 0.324, 0.339], OPS: [0.744, 0.766, 0.782, 0.832, 0.804, 0.757, 0.716, 0.688, 0.766, 0.722, 0.734, 0.775, 0.694, 0.775] },
+            pitcher: { IP: [260.3, 261, 211, 283.3, 267.3, 261.2, 285, 253, 233, 214.3, 273.3, 236.3, 196.7, 199.3], ERA: [3.66, 4.10, 3.84, 3.36, 4.34, 4.44, 3.98, 3.77, 4.17, 3.98, 3.78, 3.85, 4.04, 4.52], WHIP: [1.15, 1.33, 1.10, 1.17, 1.32, 1.42, 1.25, 1.21, 1.23, 1.22, 1.27, 1.08, 1.33, 1.44], K_BB: [3.15, 2.19, 3.24, 2.78, 2.46, 2.35, 3.15, 3.02, 2.37, 3.01, 2.79, 3.10, 2.41, 2.16], QS: [19, 16, 15, 22, 16, 13, 18, 17, 14, 13, 12, 14, 13, 12], SV_H: [2, 21, 14, 10, 14, 13, 24, 14, 14, 15, 9, 21, 16, 16], NW: [6, 4, 0, 8, -6, -4, 1, 0, 5, 0, 4, 0, 1, -7] }
+        },
+        W6_Cumu: {
+            hitter: { R: [149, 162, 148, 190, 160, 135, 136, 139, 172, 178, 136, 194, 137, 192], HR: [41, 42, 42, 53, 50, 42, 42, 35, 42, 37, 30, 47, 35, 48], RBI: [160, 139, 178, 133, 144, 152, 156, 135, 148, 130, 118, 169, 136, 157], SB: [36, 23, 20, 11, 28, 21, 26, 26, 29, 36, 19, 33, 13, 9], K_H: [285, 262, 223, 252, 275, 243, 266, 271, 274, 288, 255, 319, 266, 264], OBP: [0.329, 0.340, 0.336, 0.372, 0.335, 0.333, 0.340, 0.321, 0.339, 0.342, 0.328, 0.341, 0.331, 0.353], OPS: [0.745, 0.750, 0.775, 0.852, 0.770, 0.765, 0.754, 0.727, 0.762, 0.748, 0.715, 0.780, 0.714, 0.803] },
+            pitcher: { IP: [322.3, 320.7, 250.3, 337.3, 344.3, 322.3, 343.3, 306, 304, 273.7, 332.3, 284.3, 234.7, 230.3], ERA: [3.69, 4.29, 3.81, 3.50, 4.73, 4.10, 4.04, 3.47, 3.94, 3.85, 3.76, 3.58, 4.07, 4.69], WHIP: [1.18, 1.35, 1.13, 1.19, 1.40, 1.38, 1.26, 1.21, 1.23, 1.22, 1.27, 1.10, 1.31, 1.46], K_BB: [2.87, 2.25, 3.28, 2.78, 2.32, 2.51, 2.92, 2.84, 2.59, 2.81, 3.02, 3.10, 2.50, 2.19], QS: [23, 18, 18, 26, 19, 19, 21, 22, 19, 18, 17, 18, 17, 14], SV_H: [2, 21, 14, 10, 16, 18, 30, 18, 15, 17, 9, 26, 18, 19], NW: [7, -1, 0, 8, -8, 2, 0, -2, 6, 2, 5, -1, -1, -11] }
         },
         Total: {
-            hitter: {
-                R: [148, 149, 162, 190, 172, 160, 178, 135, 136, 139, 136, 192, 137, 194],
-                HR: [42, 41, 42, 53, 42, 50, 37, 42, 42, 35, 30, 48, 35, 47],
-                RBI: [178, 160, 139, 133, 148, 144, 130, 152, 156, 135, 118, 157, 136, 169],
-                SB: [20, 36, 23, 11, 29, 28, 36, 21, 26, 26, 19, 9, 13, 33],
-                K_H: [223, 285, 262, 252, 274, 275, 288, 243, 266, 271, 255, 264, 266, 319],
-                OBP: [0.336, 0.329, 0.340, 0.372, 0.339, 0.335, 0.342, 0.333, 0.340, 0.321, 0.328, 0.353, 0.331, 0.341],
-                OPS: [0.775, 0.745, 0.750, 0.852, 0.762, 0.770, 0.748, 0.765, 0.754, 0.727, 0.715, 0.803, 0.714, 0.780]
-            },
-            pitcher: {
-                IP: [250.3, 322.3, 320.7, 337.3, 304, 344.3, 273.7, 322.3, 343.3, 306, 332.3, 230.3, 234.7, 284.3],
-                ERA: [3.81, 3.69, 4.29, 3.50, 3.94, 4.73, 3.85, 4.10, 4.04, 3.47, 3.76, 4.69, 4.07, 3.58],
-                WHIP: [1.13, 1.18, 1.35, 1.19, 1.23, 1.40, 1.22, 1.38, 1.26, 1.21, 1.27, 1.46, 1.31, 1.10],
-                K_BB: [3.28, 2.87, 2.25, 2.78, 2.59, 2.32, 2.81, 2.51, 2.92, 2.84, 3.02, 2.19, 2.50, 3.10],
-                QS: [18, 23, 18, 26, 19, 19, 18, 19, 21, 22, 17, 14, 17, 18],
-                SV_H: [14, 2, 21, 10, 15, 16, 17, 18, 30, 18, 9, 19, 18, 26],
-                NW: [0, 7, -1, 8, 6, -8, 2, 2, 0, -2, 5, -11, -1, -1]
-            }
+            hitter: { R: [180, 189, 167, 226, 178, 164, 164, 157, 196, 206, 161, 225, 158, 213], HR: [49, 48, 47, 60, 56, 57, 46, 41, 47, 46, 35, 57, 46, 53], RBI: [182, 166, 198, 162, 162, 183, 182, 162, 172, 155, 143, 196, 159, 176], SB: [42, 25, 24, 15, 32, 22, 33, 34, 38, 44, 24, 40, 15, 11], K_H: [331, 312, 271, 315, 322, 286, 311, 320, 326, 338, 298, 370, 323, 312], OBP: [0.331, 0.339, 0.326, 0.367, 0.333, 0.337, 0.343, 0.323, 0.325, 0.339, 0.327, 0.340, 0.325, 0.343], OPS: [0.752, 0.755, 0.746, 0.833, 0.758, 0.788, 0.758, 0.732, 0.727, 0.743, 0.716, 0.780, 0.719, 0.774] },
+            pitcher: { IP: [379.3, 383.3, 288.3, 404.3, 405.3, 389.0, 409.0, 366.3, 359.3, 321.0, 401.3, 351.0, 264.3, 278.0], ERA: [3.72, 4.51, 3.87, 3.27, 4.46, 3.84, 3.94, 3.41, 3.96, 4.07, 3.81, 3.46, 3.81, 4.73], WHIP: [1.20, 1.37, 1.14, 1.15, 1.34, 1.32, 1.24, 1.20, 1.21, 1.22, 1.27, 1.12, 1.26, 1.44], K_BB: [2.65, 2.31, 3.04, 2.90, 2.38, 2.59, 2.93, 2.91, 2.73, 2.92, 3.03, 2.79, 2.66, 2.24], QS: [28, 21, 21, 33, 24, 23, 26, 25, 22, 20, 20, 21, 20, 16], SV_H: [2, 26, 16, 11, 21, 20, 37, 20, 16, 19, 11, 30, 18, 24], NW: [9, -7, -1, 12, -10, 4, 2, 1, 7, 0, 2, -4, 0, -14] }
         }
     };
-
-    function calcWeekly(curr, prev) {
-        const res = { hitter: {}, pitcher: {} };
-        ['hitter', 'pitcher'].forEach(type => {
-            Object.keys(curr[type]).forEach(k => {
-                res[type][k] = curr[type][k].map((v, i) => 
-                    (['OBP', 'OPS', 'ERA', 'WHIP', 'K_BB'].includes(k)) ? v : Number((v - prev[type][k][i]).toFixed(1))
-                );
-            });
-        });
-        return res;
-    }
-
-    const calculatedData = {
-        "Total": rawData.Total,
-        "W1-4": rawData.W1_4,
-        "W5": calcWeekly(rawData.W5_Cumu, rawData.W1_4),
-        "W6": calcWeekly(rawData.Total, rawData.W5_Cumu)
-    };
-
-    let currentWeek = 'Total';
-    let currentTableType = 'hitter';
-    let myChart;
 
     function getRank(v, arr, lowGood = false) {
         const sorted = [...arr].sort((a, b) => lowGood ? a - b : b - a);
@@ -225,6 +159,30 @@
             return { ...t, score };
         }).sort((a, b) => b.score - a.score);
     }
+
+    function calcWeekly(curr, prev) {
+        const res = { hitter: {}, pitcher: {} };
+        ['hitter', 'pitcher'].forEach(type => {
+            Object.keys(curr[type]).forEach(k => {
+                res[type][k] = curr[type][k].map((v, i) => 
+                    (['OBP', 'OPS', 'ERA', 'WHIP', 'K_BB'].includes(k)) ? v : Number((v - prev[type][k][i]).toFixed(1))
+                );
+            });
+        });
+        return res;
+    }
+
+    const calculatedData = {
+        "Total": rawData.Total,
+        "W1-4": rawData.W1_4,
+        "W5": calcWeekly(rawData.W5_Cumu, rawData.W1_4),
+        "W6": calcWeekly(rawData.W6_Cumu, rawData.W5_Cumu),
+        "W7": calcWeekly(rawData.Total, rawData.W6_Cumu)
+    };
+
+    let currentWeek = 'Total';
+    let currentTableType = 'hitter';
+    let myChart;
 
     function updateView(v) {
         currentWeek = v;
@@ -282,8 +240,12 @@
 
     window.onload = () => {
         const pow = calcManagerPower();
-        document.getElementById('managerTop3').innerHTML = pow.slice(0, 3).map((m, i) => `<div class="manager-card"><span class="top-label">운영 실력 ${i+1}위</span><span class="team-name">${m.name}</span><div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score.toFixed(1)}</div></div>`).join('');
-        document.getElementById('standingsBody').innerHTML = pow.sort((a, b) => a.rank - b.rank).map(s => `<tr><td>${s.rank}</td><td style="text-align:left;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td><td>${s.div} 리그</td><td>${s.wlt}</td><td>${s.pct.toFixed(3)}</td><td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score.toFixed(1)}</td></tr>`).join('');
+        document.getElementById('managerTop3').innerHTML = pow.slice(0, 3).map((m, i) => `
+            <div class="manager-card"><span class="top-label">운영 실력 ${i+1}위</span><span class="team-name">${m.name}</span><div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score.toFixed(1)}</div></div>
+        `).join('');
+        document.getElementById('standingsBody').innerHTML = pow.sort((a, b) => a.rank - b.rank).map(s => `
+            <tr><td>${s.rank}</td><td style="text-align:left;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td><td>${s.div} 리그</td><td>${s.wlt}</td><td>${s.pct.toFixed(3)}</td><td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score.toFixed(1)}</td></tr>
+        `).join('');
         renderDashboard();
     };
 </script>
