@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Fantasy Dashboard v0513</title>
+    <title>MLB Fantasy Dashboard v0526</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
@@ -17,14 +17,14 @@
         .standings-wrapper { margin-bottom: 40px; border: 2px solid #0f172a; border-radius: 12px; overflow: hidden; }
         .standings-header { background: #0f172a; color: white; padding: 15px; font-weight: 800; text-align: center; font-size: 18px; }
         .standings-table { width: 100%; border-collapse: collapse; }
-        .standings-table th { background: #f1f5f9; padding: 12px; font-size: 13px; color: #475569; }
-        .standings-table td { padding: 12px; text-align: center; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
+        .standings-table th { background: #f1f5f9; padding: 12px; font-size: 13px; color: #475569; border-bottom: 2px solid #cbd5e1; }
+        .standings-table td { padding: 12px; text-align: center; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
         .division-tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: normal; }
         .hs-tag { background: #fee2e2; color: #ef4444; }
         .jh-tag { background: #e0f2fe; color: #0ea5e9; }
         .filter-section { margin: 30px 0; text-align: center; }
         .week-selector { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .week-btn { padding: 10px 20px; border: 1px solid #e2e8f0; border-radius: 30px; background: white; cursor: pointer; font-weight: 700; color: #64748b; }
+        .week-btn { padding: 10px 20px; border: 1px solid #e2e8f0; border-radius: 30px; background: white; cursor: pointer; font-weight: 700; color: #64748b; transition: all 0.2s; }
         .week-btn.active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
         .tab-buttons { display: flex; justify-content: center; margin-bottom: 15px; }
         .tab-buttons button { padding: 14px 40px; cursor: pointer; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; color: #475569; }
@@ -43,17 +43,23 @@
 <body>
 
 <div class="container">
-    <h1>⚾ MLB Fantasy Dashboard v0513</h1>
+    <h1>⚾ MLB Fantasy Dashboard v0526</h1>
 
-    <h2 style="text-align:center; font-size: 20px; color: #475569;">🥇 구단주 운영 실력 TOP 3 (7주 누적)</h2>
+    <h2 style="text-align:center; font-size: 20px; color: #475569;">🥇 구단주 운영 실력 TOP 3 (9주 누적)</h2>
     <div class="manager-rank-section" id="managerTop3"></div>
 
     <div class="standings-wrapper">
-        <div class="standings-header">🏆 Overall Standing (7주차 누적 기준)</div>
+        <div class="standings-header">🏆 Overall Standing (9주차 누적 기록 기준)</div>
         <table class="standings-table">
             <thead>
                 <tr>
-                    <th>Rank</th><th>Team Name</th><th>Division</th><th>W-L-T</th><th>Pct</th><th>운영 실력</th>
+                    <th>Rank</th>
+                    <th>Team Name</th>
+                    <th>Division</th>
+                    <th>W-L-T</th>
+                    <th>Pct</th>
+                    <th>운영 실력</th>
+                    <th>로티서리 순위</th>
                 </tr>
             </thead>
             <tbody id="standingsBody"></tbody>
@@ -62,11 +68,13 @@
 
     <div class="filter-section">
         <div class="week-selector">
-            <button class="week-btn active" onclick="updateView('Total')">전체 누적(1-7주)</button>
+            <button class="week-btn active" onclick="updateView('Total')">전체 누적(1-9주)</button>
             <button class="week-btn" onclick="updateView('W1-4')">1-4주차 통합</button>
             <button class="week-btn" onclick="updateView('W5')">5주차 Weekly</button>
             <button class="week-btn" onclick="updateView('W6')">6주차 Weekly</button>
             <button class="week-btn" onclick="updateView('W7')">7주차 Weekly</button>
+            <button class="week-btn" onclick="updateView('W8')">8주차 Weekly</button>
+            <button class="week-btn" onclick="updateView('W9')">9주차 Weekly</button>
         </div>
     </div>
 
@@ -77,11 +85,11 @@
     <div id="tableContainer" class="table-wrapper"></div>
 
     <div class="controls">
-        <label>📊 데이터 시각화: </label>
+        <label>📊 데이터 시각화 카테고리: </label>
         <select id="statSelect" onchange="renderDashboard()">
             <optgroup label="Hitter Stats">
                 <option value="R">R</option><option value="HR">HR</option><option value="RBI">RBI</option>
-                <option value="SB">SB</option><option value="K_H">K (타자)</option><option value="OBP">OBP</option><option value="OPS">OPS</option>
+                <option value="SB">SB</option><option value="K">K (타자 삼진)</option><option value="OBP">OBP</option><option value="OPS">OPS</option>
             </optgroup>
             <optgroup label="Pitcher Stats">
                 <option value="IP">IP</option><option value="ERA">ERA ↓</option><option value="WHIP">WHIP ↓</option>
@@ -97,96 +105,234 @@
 <script>
     Chart.register(ChartDataLabels);
 
-    const leagueStandings = [
-        { rank: 1, name: "Murry-Ker Daehyun", div: "지훈", wlt: "56-38-4", pct: 0.592 },
-        { rank: 2, name: "Sleeping Jihoo", div: "현석", wlt: "55-41-2", pct: 0.571 },
-        { rank: 3, name: "Real Twins", div: "현석", wlt: "53-39-6", pct: 0.571 },
-        { rank: 4, name: "10 LuckyVickies", div: "현석", wlt: "53-41-4", pct: 0.561 },
-        { rank: 5, name: "Multi Champion", div: "현석", wlt: "50-41-7", pct: 0.546 },
-        { rank: 6, name: "Chief Residents", div: "지훈", wlt: "47-42-9", pct: 0.526 },
-        { rank: 7, name: "Cho Biden", div: "현석", wlt: "50-45-3", pct: 0.526 },
-        { rank: 8, name: "daily sia", div: "지훈", wlt: "47-46-5", pct: 0.505 },
-        { rank: 9, name: "Orange", div: "지훈", wlt: "45-47-6", pct: 0.490 },
-        { rank: 10, name: "Kook Surfer", div: "현석", wlt: "45-48-5", pct: 0.485 },
-        { rank: 11, name: "HanManDoo Jr.", div: "현석", wlt: "40-53-5", pct: 0.434 },
-        { rank: 12, name: "Make MooMool Great Again", div: "지훈", wlt: "35-53-10", pct: 0.408 },
-        { rank: 13, name: "Yubu airdoshi", div: "지훈", wlt: "35-55-8", pct: 0.398 },
-        { rank: 14, name: "Not Seoul Mayor", div: "지훈", wlt: "36-58-4", pct: 0.388 }
-    ];
-
-    const rawData = {
-        teams: leagueStandings.map(s => s.name),
-        W1_4: {
-            hitter: { R: [80, 102, 94, 110, 111, 85, 87, 83, 108, 113, 94, 114, 89, 115], HR: [21, 29, 29, 35, 37, 27, 24, 11, 25, 24, 18, 28, 19, 29], RBI: [93, 99, 116, 92, 93, 96, 95, 76, 93, 77, 81, 103, 89, 100], SB: [26, 12, 17, 9, 15, 13, 14, 16, 18, 26, 12, 21, 10, 8], K_H: [182, 174, 136, 186, 183, 162, 165, 180, 175, 186, 156, 202, 174, 172], OBP: [0.325, 0.331, 0.347, 0.347, 0.344, 0.336, 0.324, 0.307, 0.349, 0.338, 0.336, 0.331, 0.310, 0.336], OPS: [0.723, 0.735, 0.804, 0.809, 0.807, 0.753, 0.709, 0.647, 0.761, 0.748, 0.731, 0.759, 0.656, 0.754] },
-            pitcher: { IP: [204.3, 188, 165, 210, 216.7, 197.3, 223.3, 191.7, 170, 169, 215, 179.7, 163.7, 150], ERA: [3.61, 3.40, 3.33, 2.91, 4.53, 4.06, 3.99, 4.18, 4.76, 3.62, 3.60, 3.61, 3.90, 4.56], WHIP: [1.13, 1.23, 1.06, 1.15, 1.37, 1.31, 1.22, 1.25, 1.21, 1.21, 1.30, 1.06, 1.33, 1.41], K_BB: [3.24, 2.15, 3.54, 2.83, 2.29, 2.77, 3.22, 2.96, 2.40, 3.03, 2.47, 3.02, 2.26, 2.16], QS: [14, 11, 12, 18, 13, 10, 15, 11, 9, 10, 10, 11, 11, 9], SV_H: [2, 16, 11, 7, 10, 12, 17, 11, 11, 12, 9, 15, 15, 10], NW: [7, 3, 0, 9, -5, -3, -2, -4, 0, 2, 2, 1, 4, -7] }
+    const teamsDB = {
+        "Murry-Ker Daehyun": {
+            rank: 1, div: "지훈", wlt: "70-50-6", pct: 0.579,
+            W1_4: { hitter: { R:80, HR:21, RBI:93, SB:26, K:182, OBP:0.325, OPS:0.723 }, pitcher: { IP:204.3, ERA:3.61, WHIP:1.13, K_BB:3.24, QS:14, SV_H:2, NW:7 } },
+            W5:   { hitter: { R:119, HR:30, RBI:122, SB:33, K:233, OBP:0.333, OPS:0.744 }, pitcher: { IP:260.2, ERA:3.66, WHIP:1.15, K_BB:3.15, QS:19, SV_H:2, NW:6 } },
+            W6:   { hitter: { R:149, HR:41, RBI:160, SB:36, K:285, OBP:0.329, OPS:0.745 }, pitcher: { IP:322.3, ERA:3.69, WHIP:1.18, K_BB:2.87, QS:23, SV_H:2, NW:7 } },
+            W7:   { hitter: { R:180, HR:49, RBI:182, SB:42, K:331, OBP:0.331, OPS:0.752 }, pitcher: { IP:379.1, ERA:3.72, WHIP:1.20, K_BB:2.65, QS:28, SV_H:2, NW:9 } },
+            W8:   { hitter: { R:213, HR:58, RBI:206, SB:50, K:379, OBP:0.339, OPS:0.771 }, pitcher: { IP:432.3, ERA:3.96, WHIP:1.23, K_BB:2.55, QS:32, SV_H:2, NW:3 } },
+            Total:{ hitter: { R:239, HR:66, RBI:232, SB:56, K:425, OBP:0.339, OPS:0.771 }, pitcher: { IP:486.1, ERA:3.96, WHIP:1.23, K_BB:2.56, QS:35, SV_H:2, NW:2 } }
         },
-        W5_Cumu: {
-            hitter: { R: [119, 131, 121, 150, 139, 111, 110, 109, 143, 140, 121, 158, 119, 150], HR: [30, 39, 37, 45, 45, 34, 32, 23, 37, 28, 26, 39, 28, 40], RBI: [122, 123, 145, 115, 127, 121, 124, 103, 129, 104, 100, 139, 113, 131], SB: [33, 19, 17, 11, 24, 17, 22, 22, 23, 32, 14, 27, 13, 9], K_H: [233, 211, 177, 220, 226, 204, 218, 230, 219, 248, 205, 257, 217, 218], OBP: [0.333, 0.342, 0.335, 0.363, 0.344, 0.334, 0.327, 0.313, 0.339, 0.333, 0.336, 0.338, 0.324, 0.339], OPS: [0.744, 0.766, 0.782, 0.832, 0.804, 0.757, 0.716, 0.688, 0.766, 0.722, 0.734, 0.775, 0.694, 0.775] },
-            pitcher: { IP: [260.3, 261, 211, 283.3, 267.3, 261.2, 285, 253, 233, 214.3, 273.3, 236.3, 196.7, 199.3], ERA: [3.66, 4.10, 3.84, 3.36, 4.34, 4.44, 3.98, 3.77, 4.17, 3.98, 3.78, 3.85, 4.04, 4.52], WHIP: [1.15, 1.33, 1.10, 1.17, 1.32, 1.42, 1.25, 1.21, 1.23, 1.22, 1.27, 1.08, 1.33, 1.44], K_BB: [3.15, 2.19, 3.24, 2.78, 2.46, 2.35, 3.15, 3.02, 2.37, 3.01, 2.79, 3.10, 2.41, 2.16], QS: [19, 16, 15, 22, 16, 13, 18, 17, 14, 13, 12, 14, 13, 12], SV_H: [2, 21, 14, 10, 14, 13, 24, 14, 14, 15, 9, 21, 16, 16], NW: [6, 4, 0, 8, -6, -4, 1, 0, 5, 0, 4, 0, 1, -7] }
+        "Sleeping Jihoo": {
+            rank: 2, div: "현석", wlt: "71-51-4", pct: 0.579,
+            W1_4: { hitter: { R:102, HR:29, RBI:99, SB:12, K:174, OBP:0.331, OPS:0.735 }, pitcher: { IP:188.0, ERA:3.40, WHIP:1.23, K_BB:2.15, QS:11, SV_H:16, NW:3 } },
+            W5:   { hitter: { R:131, HR:39, RBI:123, SB:19, K:211, OBP:0.342, OPS:0.766 }, pitcher: { IP:261.0, ERA:4.10, WHIP:1.33, K_BB:2.19, QS:16, SV_H:18, NW:4 } },
+            W6:   { hitter: { R:162, HR:42, RBI:139, SB:23, K:262, OBP:0.340, OPS:0.750 }, pitcher: { IP:320.7, ERA:4.29, WHIP:1.35, K_BB:2.35, QS:18, SV_H:21, NW:-1 } },
+            W7:   { hitter: { R:189, HR:48, RBI:166, SB:25, K:312, OBP:0.339, OPS:0.755 }, pitcher: { IP:383.1, ERA:4.51, WHIP:1.37, K_BB:2.31, QS:21, SV_H:26, NW:-7 } },
+            W8:   { hitter: { R:218, HR:56, RBI:192, SB:30, K:352, OBP:0.342, OPS:0.767 }, pitcher: { IP:430.0, ERA:4.48, WHIP:1.34, K_BB:2.33, QS:24, SV_H:31, NW:-6 } },
+            Total:{ hitter: { R:244, HR:60, RBI:211, SB:32, K:398, OBP:0.339, OPS:0.758 }, pitcher: { IP:484.0, ERA:4.35, WHIP:1.33, K_BB:2.39, QS:28, SV_H:36, NW:-6 } }
         },
-        W6_Cumu: {
-            hitter: { R: [149, 162, 148, 190, 160, 135, 136, 139, 172, 178, 136, 194, 137, 192], HR: [41, 42, 42, 53, 50, 42, 42, 35, 42, 37, 30, 47, 35, 48], RBI: [160, 139, 178, 133, 144, 152, 156, 135, 148, 130, 118, 169, 136, 157], SB: [36, 23, 20, 11, 28, 21, 26, 26, 29, 36, 19, 33, 13, 9], K_H: [285, 262, 223, 252, 275, 243, 266, 271, 274, 288, 255, 319, 266, 264], OBP: [0.329, 0.340, 0.336, 0.372, 0.335, 0.333, 0.340, 0.321, 0.339, 0.342, 0.328, 0.341, 0.331, 0.353], OPS: [0.745, 0.750, 0.775, 0.852, 0.770, 0.765, 0.754, 0.727, 0.762, 0.748, 0.715, 0.780, 0.714, 0.803] },
-            pitcher: { IP: [322.3, 320.7, 250.3, 337.3, 344.3, 322.3, 343.3, 306, 304, 273.7, 332.3, 284.3, 234.7, 230.3], ERA: [3.69, 4.29, 3.81, 3.50, 4.73, 4.10, 4.04, 3.47, 3.94, 3.85, 3.76, 3.58, 4.07, 4.69], WHIP: [1.18, 1.35, 1.13, 1.19, 1.40, 1.38, 1.26, 1.21, 1.23, 1.22, 1.27, 1.10, 1.31, 1.46], K_BB: [2.87, 2.25, 3.28, 2.78, 2.32, 2.51, 2.92, 2.84, 2.59, 2.81, 3.02, 3.10, 2.50, 2.19], QS: [23, 18, 18, 26, 19, 19, 21, 22, 19, 18, 17, 18, 17, 14], SV_H: [2, 21, 14, 10, 16, 18, 30, 18, 15, 17, 9, 26, 18, 19], NW: [7, -1, 0, 8, -8, 2, 0, -2, 6, 2, 5, -1, -1, -11] }
+        "10 LuckyVickies": {
+            rank: 3, div: "현석", wlt: "68-54-4", pct: 0.556,
+            W1_4: { hitter: { R:110, HR:35, RBI:92, SB:9, K:186, OBP:0.347, OPS:0.809 }, pitcher: { IP:210.0, ERA:2.91, WHIP:1.15, K_BB:2.83, QS:18, SV_H:7, NW:9 } },
+            W5:   { hitter: { R:150, HR:45, RBI:115, SB:11, K:220, OBP:0.363, OPS:0.832 }, pitcher: { IP:283.2, ERA:3.36, WHIP:1.17, K_BB:2.78, QS:22, SV_H:10, NW:8 } },
+            W6:   { hitter: { R:190, HR:53, RBI:133, SB:11, K:252, OBP:0.372, OPS:0.852 }, pitcher: { IP:337.3, ERA:3.50, WHIP:1.19, K_BB:2.78, QS:26, SV_H:10, NW:8 } },
+            W7:   { hitter: { R:226, HR:60, RBI:162, SB:15, K:315, OBP:0.367, OPS:0.833 }, pitcher: { IP:404.1, ERA:3.27, WHIP:1.15, K_BB:2.90, QS:33, SV_H:11, NW:12 } },
+            W8:   { hitter: { R:259, HR:69, RBI:187, SB:17, K:362, OBP:0.362, OPS:0.815 }, pitcher: { IP:476.0, ERA:3.18, WHIP:1.16, K_BB:2.91, QS:41, SV_H:12, NW:16 } },
+            Total:{ hitter: { R:283, HR:72, RBI:201, SB:19, K:412, OBP:0.356, OPS:0.801 }, pitcher: { IP:540.3, ERA:3.13, WHIP:1.16, K_BB:2.90, QS:47, SV_H:12, NW:17 } }
         },
-        Total: {
-            hitter: { R: [180, 189, 167, 226, 178, 164, 164, 157, 196, 206, 161, 225, 158, 213], HR: [49, 48, 47, 60, 56, 57, 46, 41, 47, 46, 35, 57, 46, 53], RBI: [182, 166, 198, 162, 162, 183, 182, 162, 172, 155, 143, 196, 159, 176], SB: [42, 25, 24, 15, 32, 22, 33, 34, 38, 44, 24, 40, 15, 11], K_H: [331, 312, 271, 315, 322, 286, 311, 320, 326, 338, 298, 370, 323, 312], OBP: [0.331, 0.339, 0.326, 0.367, 0.333, 0.337, 0.343, 0.323, 0.325, 0.339, 0.327, 0.340, 0.325, 0.343], OPS: [0.752, 0.755, 0.746, 0.833, 0.758, 0.788, 0.758, 0.732, 0.727, 0.743, 0.716, 0.780, 0.719, 0.774] },
-            pitcher: { IP: [379.3, 383.3, 288.3, 404.3, 405.3, 389.0, 409.0, 366.3, 359.3, 321.0, 401.3, 351.0, 264.3, 278.0], ERA: [3.72, 4.51, 3.87, 3.27, 4.46, 3.84, 3.94, 3.41, 3.96, 4.07, 3.81, 3.46, 3.81, 4.73], WHIP: [1.20, 1.37, 1.14, 1.15, 1.34, 1.32, 1.24, 1.20, 1.21, 1.22, 1.27, 1.12, 1.26, 1.44], K_BB: [2.65, 2.31, 3.04, 2.90, 2.38, 2.59, 2.93, 2.91, 2.73, 2.92, 3.03, 2.79, 2.66, 2.24], QS: [28, 21, 21, 33, 24, 23, 26, 25, 22, 20, 20, 21, 20, 16], SV_H: [2, 26, 16, 11, 21, 20, 37, 20, 16, 19, 11, 30, 18, 24], NW: [9, -7, -1, 12, -10, 4, 2, 1, 7, 0, 2, -4, 0, -14] }
+        "Real Twins": {
+            rank: 4, div: "현석", wlt: "63-56-7", pct: 0.528,
+            W1_4: { hitter: { R:94, HR:29, RBI:116, SB:17, K:136, OBP:0.347, OPS:0.804 }, pitcher: { IP:165.0, ERA:3.33, WHIP:1.06, K_BB:3.54, QS:12, SV_H:11, NW:0 } },
+            W5:   { hitter: { R:121, HR:37, RBI:145, SB:17, K:177, OBP:0.335, OPS:0.782 }, pitcher: { IP:211.0, ERA:3.84, WHIP:1.10, K_BB:3.24, QS:15, SV_H:13, NW:-2 } },
+            W6:   { hitter: { R:148, HR:42, RBI:178, SB:20, K:223, OBP:0.336, OPS:0.775 }, pitcher: { IP:250.3, ERA:3.81, WHIP:1.13, K_BB:3.28, QS:18, SV_H:14, NW:0 } },
+            W7:   { hitter: { R:167, HR:47, RBI:198, SB:24, K:271, OBP:0.326, OPS:0.746 }, pitcher: { IP:288.2, ERA:3.87, WHIP:1.14, K_BB:3.04, QS:21, SV_H:16, NW:-1 } },
+            W8:   { hitter: { R:189, HR:54, RBI:218, SB:26, K:310, OBP:0.321, OPS:0.737 }, pitcher: { IP:345.3, ERA:3.70, WHIP:1.12, K_BB:3.18, QS:24, SV_H:21, NW:1 } },
+            Total:{ hitter: { R:217, HR:62, RBI:237, SB:29, K:358, OBP:0.323, OPS:0.740 }, pitcher: { IP:411.3, ERA:3.98, WHIP:1.14, K_BB:3.28, QS:29, SV_H:25, NW:-2 } }
+        },
+        "Cho Biden": {
+            rank: 5, div: "현석", wlt: "62-59-5", pct: 0.512,
+            W1_4: { hitter: { R:87, HR:24, RBI:95, SB:14, K:165, OBP:0.324, OPS:0.709 }, pitcher: { IP:223.3, ERA:3.99, WHIP:1.22, K_BB:3.22, QS:15, SV_H:17, NW:-2 } },
+            W5:   { hitter: { R:110, HR:32, RBI:124, SB:22, K:218, OBP:0.327, OPS:0.716 }, pitcher: { IP:285.0, ERA:3.98, WHIP:1.25, K_BB:3.15, QS:18, SV_H:24, NW:1 } },
+            W6:   { hitter: { R:136, HR:42, RBI:156, SB:26, K:266, OBP:0.340, OPS:0.754 }, pitcher: { IP:343.3, ERA:4.04, WHIP:1.26, K_BB:2.92, QS:21, SV_H:30, NW:0 } },
+            W7:   { hitter: { R:164, HR:46, RBI:182, SB:33, K:311, OBP:0.343, OPS:0.758 }, pitcher: { IP:409.0, ERA:3.94, WHIP:1.24, K_BB:2.93, QS:26, SV_H:37, NW:2 } },
+            W8:   { hitter: { R:203, HR:55, RBI:202, SB:42, K:357, OBP:0.346, OPS:0.771 }, pitcher: { IP:465.0, ERA:4.24, WHIP:1.26, K_BB:2.81, QS:27, SV_H:42, NW:-4 } },
+            Total:{ hitter: { R:229, HR:62, RBI:229, SB:48, K:405, OBP:0.342, OPS:0.761 }, pitcher: { IP:528.0, ERA:4.14, WHIP:1.26, K_BB:2.59, QS:30, SV_H:45, NW:-7 } }
+        },
+        "Kook Surfer": {
+            rank: 6, div: "현석", wlt: "60-58-8", pct: 0.508,
+            W1_4: { hitter: { R:113, HR:24, RBI:77, SB:26, K:186, OBP:0.338, OPS:0.748 }, pitcher: { IP:169.0, ERA:3.62, WHIP:1.21, K_BB:3.03, QS:10, SV_H:12, NW:2 } },
+            W5:   { hitter: { R:140, HR:28, RBI:104, SB:32, K:248, OBP:0.333, OPS:0.722 }, pitcher: { IP:214.2, ERA:3.98, WHIP:1.22, K_BB:3.01, QS:13, SV_H:15, NW:0 } },
+            W6:   { hitter: { R:178, HR:37, RBI:130, SB:36, K:288, OBP:0.342, OPS:0.748 }, pitcher: { IP:273.7, ERA:3.85, WHIP:1.22, K_BB:2.81, QS:18, SV_H:17, NW:2 } },
+            W7:   { hitter: { R:206, HR:46, RBI:155, SB:44, K:338, OBP:0.339, OPS:0.743 }, pitcher: { IP:321.0, ERA:4.07, WHIP:1.22, K_BB:2.92, QS:20, SV_H:19, NW:0 } },
+            W8:   { hitter: { R:231, HR:50, RBI:180, SB:54, K:376, OBP:0.340, OPS:0.747 }, pitcher: { IP:377.0, ERA:3.92, WHIP:1.23, K_BB:3.01, QS:26, SV_H:22, NW:2 } },
+            Total:{ hitter: { R:263, HR:61, RBI:218, SB:58, K:425, OBP:0.341, OPS:0.760 }, pitcher: { IP:428.7, ERA:3.80, WHIP:1.22, K_BB:2.96, QS:29, SV_H:24, NW:4 } }
+        },
+        "Multi Champion": {
+            rank: 7, div: "현석", wlt: "60-58-8", pct: 0.508,
+            W1_4: { hitter: { R:111, HR:37, RBI:93, SB:15, K:183, OBP:0.344, OPS:0.807 }, pitcher: { IP:216.7, ERA:4.53, WHIP:1.37, K_BB:2.29, QS:13, SV_H:10, NW:-5 } },
+            W5:   { hitter: { R:139, HR:45, RBI:127, SB:24, K:226, OBP:0.344, OPS:0.804 }, pitcher: { IP:267.2, ERA:4.34, WHIP:1.32, K_BB:2.46, QS:16, SV_H:14, NW:-6 } },
+            W6:   { hitter: { R:160, HR:50, RBI:144, SB:28, K:275, OBP:0.335, OPS:0.770 }, pitcher: { IP:344.3, ERA:4.73, WHIP:1.40, K_BB:2.32, QS:19, SV_H:16, NW:-8 } },
+            W7:   { hitter: { R:178, HR:56, RBI:162, SB:32, K:322, OBP:0.333, OPS:0.758 }, pitcher: { IP:405.2, ERA:4.46, WHIP:1.34, K_BB:2.38, QS:24, SV_H:21, NW:-10 } },
+            W8:   { hitter: { R:198, HR:61, RBI:177, SB:35, K:373, OBP:0.333, OPS:0.749 }, pitcher: { IP:459.0, ERA:4.41, WHIP:1.34, K_BB:2.38, QS:25, SV_H:25, NW:-7 } },
+            Total:{ hitter: { R:230, HR:72, RBI:209, SB:40, K:422, OBP:0.334, OPS:0.758 }, pitcher: { IP:519.3, ERA:4.38, WHIP:1.33, K_BB:2.39, QS:29, SV_H:28, NW:-8 } }
+        },
+        "Chief Residents": {
+            rank: 8, div: "지훈", wlt: "59-57-10", pct: 0.508,
+            W1_4: { hitter: { R:85, HR:27, RBI:96, SB:13, K:162, OBP:0.336, OPS:0.753 }, pitcher: { IP:197.3, ERA:4.06, WHIP:1.31, K_BB:2.77, QS:10, SV_H:12, NW:-3 } },
+            W5:   { hitter: { R:111, HR:34, RBI:121, SB:17, K:204, OBP:0.334, OPS:0.757 }, pitcher: { IP:261.1, ERA:4.44, WHIP:1.42, K_BB:2.35, QS:13, SV_H:13, NW:-4 } },
+            W6:   { hitter: { R:135, HR:42, RBI:152, SB:21, K:243, OBP:0.333, OPS:0.765 }, pitcher: { IP:322.3, ERA:4.10, WHIP:1.38, K_BB:2.51, QS:19, SV_H:18, NW:2 } },
+            W7:   { hitter: { R:164, HR:57, RBI:183, SB:22, K:286, OBP:0.337, OPS:0.788 }, pitcher: { IP:389.0, ERA:3.84, WHIP:1.32, K_BB:2.59, QS:23, SV_H:20, NW:4 } },
+            W8:   { hitter: { R:193, HR:64, RBI:212, SB:25, K:340, OBP:0.328, OPS:0.758 }, pitcher: { IP:456.0, ERA:4.01, WHIP:1.33, K_BB:2.66, QS:27, SV_H:22, NW:1 } },
+            Total:{ hitter: { R:219, HR:71, RBI:247, SB:29, K:383, OBP:0.324, OPS:0.749 }, pitcher: { IP:505.0, ERA:3.89, WHIP:1.32, K_BB:2.77, QS:31, SV_H:27, NW:-3 } }
+        },
+        "daily sia": {
+            rank: 9, div: "지훈", wlt: "60-59-7", pct: 0.504,
+            W1_4: { hitter: { R:83, HR:11, RBI:76, SB:16, K:180, OBP:0.307, OPS:0.647 }, pitcher: { IP:191.7, ERA:4.18, WHIP:1.25, K_BB:2.96, QS:11, SV_H:11, NW:-4 } },
+            W5:   { hitter: { R:109, HR:23, RBI:103, SB:22, K:230, OBP:0.313, OPS:0.688 }, pitcher: { IP:253.0, ERA:3.77, WHIP:1.21, K_BB:3.02, QS:17, SV_H:14, NW:0 } },
+            W6:   { hitter: { R:139, HR:35, RBI:135, SB:26, K:271, OBP:0.321, OPS:0.727 }, pitcher: { IP:306.0, ERA:3.47, WHIP:1.21, K_BB:2.84, QS:22, SV_H:18, NW:-2 } },
+            W7:   { hitter: { R:157, HR:41, RBI:162, SB:34, K:320, OBP:0.323, OPS:0.732 }, pitcher: { IP:366.2, ERA:3.41, WHIP:1.20, K_BB:2.91, QS:25, SV_H:20, NW:1 } },
+            W8:   { hitter: { R:183, HR:51, RBI:189, SB:38, K:364, OBP:0.317, OPS:0.726 }, pitcher: { IP:437.3, ERA:3.56, WHIP:1.23, K_BB:2.79, QS:31, SV_H:24, NW:4 } },
+            Total:{ hitter: { R:214, HR:55, RBI:213, SB:44, K:417, OBP:0.319, OPS:0.725 }, pitcher: { IP:502.0, ERA:3.57, WHIP:1.23, K_BB:2.98, QS:37, SV_H:27, NW:3 } }
+        },
+        "Make MooMool Great Again": {
+            rank: 10, div: "지훈", wlt: "56-58-12", pct: 0.492,
+            W1_4: { hitter: { R:114, HR:28, RBI:103, SB:21, K:202, OBP:0.331, OPS:0.759 }, pitcher: { IP:179.7, ERA:3.61, WHIP:1.06, K_BB:3.02, QS:11, SV_H:15, NW:1 } },
+            W5:   { hitter: { R:158, HR:39, RBI:139, SB:27, K:257, OBP:0.338, OPS:0.775 }, pitcher: { IP:236.0, ERA:3.85, WHIP:1.08, K_BB:3.10, QS:14, SV_H:21, NW:0 } },
+            W6:   { hitter: { R:194, HR:47, RBI:169, SB:33, K:319, OBP:0.341, OPS:0.780 }, pitcher: { IP:284.3, ERA:3.58, WHIP:1.10, K_BB:3.10, QS:18, SV_H:26, NW:-1 } },
+            W7:   { hitter: { R:225, HR:57, RBI:196, SB:40, K:370, OBP:0.340, OPS:0.780 }, pitcher: { IP:351.0, ERA:3.46, WHIP:1.12, K_BB:2.79, QS:21, SV_H:30, NW:-4 } },
+            W8:   { hitter: { R:251, HR:64, RBI:224, SB:45, K:412, OBP:0.344, OPS:0.788 }, pitcher: { IP:401.7, ERA:3.43, WHIP:1.14, K_BB:2.82, QS:25, SV_H:34, NW:-5 } },
+            Total:{ hitter: { R:270, HR:69, RBI:243, SB:49, K:452, OBP:0.340, OPS:0.775 }, pitcher: { IP:444.3, ERA:3.46, WHIP:1.11, K_BB:3.04, QS:29, SV_H:38, NW:-3 } }
+        },
+        "Orange": {
+            rank: 11, div: "지훈", wlt: "58-61-7", pct: 0.488,
+            W1_4: { hitter: { R:108, HR:25, RBI:93, SB:18, K:175, OBP:0.349, OPS:0.761 }, pitcher: { IP:170.0, ERA:4.76, WHIP:1.21, K_BB:2.40, QS:9, SV_H:11, NW:0 } },
+            W5:   { hitter: { R:143, HR:37, RBI:129, SB:23, K:219, OBP:0.339, OPS:0.766 }, pitcher: { IP:233.0, ERA:4.17, WHIP:1.23, K_BB:2.37, QS:14, SV_H:14, NW:5 } },
+            W6:   { hitter: { R:172, HR:42, RBI:148, SB:29, K:274, OBP:0.339, OPS:0.762 }, pitcher: { IP:304.0, ERA:3.94, WHIP:1.23, K_BB:2.59, QS:19, SV_H:15, NW:6 } },
+            W7:   { hitter: { R:196, HR:47, RBI:172, SB:38, K:326, OBP:0.325, OPS:0.727 }, pitcher: { IP:359.1, ERA:3.96, WHIP:1.21, K_BB:2.73, QS:22, SV_H:16, NW:7 } },
+            W8:   { hitter: { R:223, HR:52, RBI:197, SB:42, K:371, OBP:0.321, OPS:0.712 }, pitcher: { IP:423.7, ERA:3.93, WHIP:1.19, K_BB:2.87, QS:27, SV_H:16, NW:7 } },
+            Total:{ hitter: { R:255, HR:60, RBI:220, SB:45, K:428, OBP:0.323, OPS:0.722 }, pitcher: { IP:469.3, ERA:3.93, WHIP:1.20, K_BB:2.75, QS:29, SV_H:17, NW:10 } }
+        },
+        "Yubu airdoshi": {
+            rank: 12, div: "지훈", wlt: "49-66-11", pct: 0.433,
+            W1_4: { hitter: { R:89, HR:19, RBI:89, SB:10, K:174, OBP:0.310, OPS:0.656 }, pitcher: { IP:163.7, ERA:3.90, WHIP:1.33, K_BB:2.26, QS:11, SV_H:15, NW:4 } },
+            W5:   { hitter: { R:119, HR:28, RBI:113, SB:13, K:217, OBP:0.324, OPS:0.694 }, pitcher: { IP:196.0, ERA:4.04, WHIP:1.33, K_BB:2.41, QS:13, SV_H:16, NW:1 } },
+            W6:   { hitter: { R:137, HR:35, RBI:136, SB:13, K:266, OBP:0.331, OPS:0.714 }, pitcher: { IP:234.7, ERA:4.07, WHIP:1.31, K_BB:2.50, QS:17, SV_H:18, NW:-1 } },
+            W7:   { hitter: { R:158, HR:46, RBI:159, SB:15, K:323, OBP:0.325, OPS:0.719 }, pitcher: { IP:264.1, ERA:3.81, WHIP:1.26, K_BB:2.66, QS:20, SV_H:18, NW:0 } },
+            W8:   { hitter: { R:188, HR:55, RBI:195, SB:18, K:361, OBP:0.327, OPS:0.725 }, pitcher: { IP:300.7, ERA:3.77, WHIP:1.23, K_BB:2.84, QS:22, SV_H:21, NW:1 } },
+            Total:{ hitter: { R:208, HR:63, RBI:215, SB:22, K:419, OBP:0.321, OPS:0.716 }, pitcher: { IP:340.0, ERA:3.71, WHIP:1.22, K_BB:2.83, QS:25, SV_H:23, NW:3 } }
+        },
+        "HanManDoo Jr.": {
+            rank: 13, div: "현석", wlt: "48-70-8", pct: 0.413,
+            W1_4: { hitter: { R:94, HR:18, RBI:81, SB:12, K:156, OBP:0.336, OPS:0.731 }, pitcher: { IP:215.0, ERA:3.60, WHIP:1.30, K_BB:2.47, QS:10, SV_H:9, NW:2 } },
+            W5:   { hitter: { R:121, HR:26, RBI:100, SB:14, K:205, OBP:0.336, OPS:0.734 }, pitcher: { IP:273.3, ERA:3.78, WHIP:1.27, K_BB:2.79, QS:12, SV_H:9, NW:4 } },
+            W6:   { hitter: { R:136, HR:30, RBI:118, SB:19, K:255, OBP:0.328, OPS:0.715 }, pitcher: { IP:332.3, ERA:3.76, WHIP:1.27, K_BB:3.02, QS:17, SV_H:9, NW:5 } },
+            W7:   { hitter: { R:161, HR:35, RBI:143, SB:24, K:298, OBP:0.327, OPS:0.716 }, pitcher: { IP:401.1, ERA:3.81, WHIP:1.27, K_BB:3.03, QS:20, SV_H:11, NW:2 } },
+            W8:   { hitter: { R:178, HR:36, RBI:146, SB:28, K:344, OBP:0.321, OPS:0.696 }, pitcher: { IP:452.0, ERA:3.84, WHIP:1.26, K_BB:3.08, QS:24, SV_H:12, NW:3 } },
+            Total:{ hitter: { R:211, HR:44, RBI:175, SB:32, K:394, OBP:0.327, OPS:0.708 }, pitcher: { IP:508.0, ERA:3.92, WHIP:1.24, K_BB:3.22, QS:27, SV_H:12, NW:4 } }
+        },
+        "Not Seoul Mayor": {
+            rank: 14, div: "지훈", wlt: "47-74-5", pct: 0.393,
+            W1_4: { hitter: { R:115, HR:29, RBI:100, SB:8, K:172, OBP:0.336, OPS:0.754 }, pitcher: { IP:150.0, ERA:4.56, WHIP:1.41, K_BB:2.16, QS:9, SV_H:10, NW:-7 } },
+            W5:   { hitter: { R:150, HR:40, RBI:131, SB:9, K:218, OBP:0.339, OPS:0.775 }, pitcher: { IP:199.0, ERA:4.52, WHIP:1.44, K_BB:2.16, QS:12, SV_H:16, NW:-7 } },
+            W6:   { hitter: { R:192, HR:48, RBI:157, SB:9, K:264, OBP:0.353, OPS:0.803 }, pitcher: { IP:230.3, ERA:4.69, WHIP:1.46, K_BB:2.19, QS:14, SV_H:19, NW:-11 } },
+            W7:   { hitter: { R:213, HR:53, RBI:176, SB:11, K:312, OBP:0.343, OPS:0.774 }, pitcher: { IP:278.0, ERA:4.73, WHIP:1.44, K_BB:2.24, QS:16, SV_H:24, NW:-14 } },
+            W8:   { hitter: { R:238, HR:58, RBI:198, SB:14, K:353, OBP:0.337, OPS:0.760 }, pitcher: { IP:314.0, ERA:4.93, WHIP:1.45, K_BB:2.18, QS:18, SV_H:27, NW:-17 } },
+            Total:{ hitter: { R:267, HR:66, RBI:231, SB:19, K:397, OBP:0.339, OPS:0.764 }, pitcher: { IP:375.0, ERA:4.78, WHIP:1.41, K_BB:2.08, QS:24, SV_H:29, NW:-19 } }
         }
     };
+
+    const teamList = Object.keys(teamsDB);
+
+    function buildDashboardData() {
+        const result = { 
+            "Total":{hitter:{}, pitcher:{}}, "W1-4":{hitter:{}, pitcher:{}}, 
+            "W5":{hitter:{}, pitcher:{}}, "W6":{hitter:{}, pitcher:{}}, 
+            "W7":{hitter:{}, pitcher:{}}, "W8":{hitter:{}, pitcher:{}}, "W9":{hitter:{}, pitcher:{}} 
+        };
+
+        teamList.forEach(team => {
+            const data = teamsDB[team];
+            const steps = [
+                { target: "W1-4", curr: data.W1_4, prev: null },
+                { target: "W5", curr: data.W5, prev: data.W1_4 },
+                { target: "W6", curr: data.W6, prev: data.W5 },
+                { target: "W7", curr: data.W7, prev: data.W6 },
+                { target: "W8", curr: data.W8, prev: data.W7 },
+                { target: "W9", curr: data.Total, prev: data.W8 },
+                { target: "Total", curr: data.Total, prev: null }
+            ];
+
+            steps.forEach(step => {
+                ['hitter', 'pitcher'].forEach(type => {
+                    Object.keys(step.curr[type]).forEach(stat => {
+                        if (!result[step.target][type][stat]) result[step.target][type][stat] = [];
+                        
+                        const cv = step.curr[type][stat];
+                        if (!step.prev || ['OBP', 'OPS', 'ERA', 'WHIP', 'K_BB'].includes(stat)) {
+                            result[step.target][type][stat].push(cv);
+                        } else {
+                            const pv = step.prev[type][stat];
+                            result[step.target][type][stat].push(Number((cv - pv).toFixed(1)));
+                        }
+                    });
+                });
+            });
+        });
+        return result;
+    }
+
+    const calculatedData = buildDashboardData();
+    let currentWeek = 'Total';
+    let currentTableType = 'hitter';
+    let myChart;
+
+    function formatValue(k, v) {
+        if (['OBP', 'OPS'].includes(k)) return Number(v).toFixed(3);
+        if (['ERA', 'WHIP', 'K_BB'].includes(k)) return Number(v).toFixed(2);
+        return v;
+    }
 
     function getRank(v, arr, lowGood = false) {
         const sorted = [...arr].sort((a, b) => lowGood ? a - b : b - a);
         return sorted.indexOf(v) + 1;
     }
 
+    // 14개 카테고리 기반 종합 계산기 (운영실력 및 로티서리 순위 도출)
     function calcManagerPower() {
-        return leagueStandings.map((t, idx) => {
-            const hSum = getRank(rawData.Total.hitter.R[idx], rawData.Total.hitter.R) +
-                        getRank(rawData.Total.hitter.HR[idx], rawData.Total.hitter.HR) +
-                        getRank(rawData.Total.hitter.RBI[idx], rawData.Total.hitter.RBI) +
-                        getRank(rawData.Total.hitter.SB[idx], rawData.Total.hitter.SB) +
-                        getRank(rawData.Total.hitter.K_H[idx], rawData.Total.hitter.K_H, true) +
-                        getRank(rawData.Total.hitter.OBP[idx], rawData.Total.hitter.OBP) +
-                        getRank(rawData.Total.hitter.OPS[idx], rawData.Total.hitter.OPS);
-            const pSum = getRank(rawData.Total.pitcher.IP[idx], rawData.Total.pitcher.IP) +
-                        getRank(rawData.Total.pitcher.ERA[idx], rawData.Total.pitcher.ERA, true) +
-                        getRank(rawData.Total.pitcher.WHIP[idx], rawData.Total.pitcher.WHIP, true) +
-                        getRank(rawData.Total.pitcher.K_BB[idx], rawData.Total.pitcher.K_BB) +
-                        getRank(rawData.Total.pitcher.QS[idx], rawData.Total.pitcher.QS) +
-                        getRank(rawData.Total.pitcher.SV_H[idx], rawData.Total.pitcher.SV_H) +
-                        getRank(rawData.Total.pitcher.NW[idx], rawData.Total.pitcher.NW);
-            const score = Number(((hSum + pSum) / 14 - t.rank).toFixed(1));
-            return { ...t, score };
-        }).sort((a, b) => b.score - a.score);
-    }
+        const totalSet = calculatedData["Total"];
+        
+        // 1단계: 평균 스탯 순위 계산
+        const calculatedTeams = teamList.map((team, idx) => {
+            const info = teamsDB[team];
 
-    function calcWeekly(curr, prev) {
-        const res = { hitter: {}, pitcher: {} };
-        ['hitter', 'pitcher'].forEach(type => {
-            Object.keys(curr[type]).forEach(k => {
-                res[type][k] = curr[type][k].map((v, i) => 
-                    (['OBP', 'OPS', 'ERA', 'WHIP', 'K_BB'].includes(k)) ? v : Number((v - prev[type][k][i]).toFixed(1))
-                );
-            });
+            const hSum = getRank(totalSet.hitter.R[idx], totalSet.hitter.R) +
+                        getRank(totalSet.hitter.HR[idx], totalSet.hitter.HR) +
+                        getRank(totalSet.hitter.RBI[idx], totalSet.hitter.RBI) +
+                        getRank(totalSet.hitter.SB[idx], totalSet.hitter.SB) +
+                        getRank(totalSet.hitter.K[idx], totalSet.hitter.K, true) +
+                        getRank(totalSet.hitter.OBP[idx], totalSet.hitter.OBP) +
+                        getRank(totalSet.hitter.OPS[idx], totalSet.hitter.OPS);
+
+            const pSum = getRank(totalSet.pitcher.IP[idx], totalSet.pitcher.IP) +
+                        getRank(totalSet.pitcher.ERA[idx], totalSet.pitcher.ERA, true) +
+                        getRank(totalSet.pitcher.WHIP[idx], totalSet.pitcher.WHIP, true) +
+                        getRank(totalSet.pitcher.K_BB[idx], totalSet.pitcher.K_BB) +
+                        getRank(totalSet.pitcher.QS[idx], totalSet.pitcher.QS) +
+                        getRank(totalSet.pitcher.SV_H[idx], totalSet.pitcher.SV_H) +
+                        getRank(totalSet.pitcher.NW[idx], totalSet.pitcher.NW);
+
+            const avgStatRank = (hSum + pSum) / 14;
+            const score = Number((avgStatRank - info.rank).toFixed(1));
+            return { name: team, ...info, score, avgStatRank };
         });
-        return res;
+
+        // 2단계: 평균 스탯 순위 기반으로 '로티서리 순위' 산출 (낮을수록 고순위)
+        const rotisserieSorted = [...calculatedTeams].sort((a, b) => a.avgStatRank - b.avgStatRank);
+        calculatedTeams.forEach(t => {
+            t.rotoRank = rotisserieSorted.findIndex(r => r.name === t.name) + 1;
+        });
+
+        return calculatedTeams;
     }
-
-    const calculatedData = {
-        "Total": rawData.Total,
-        "W1-4": rawData.W1_4,
-        "W5": calcWeekly(rawData.W5_Cumu, rawData.W1_4),
-        "W6": calcWeekly(rawData.W6_Cumu, rawData.W5_Cumu),
-        "W7": calcWeekly(rawData.Total, rawData.W6_Cumu)
-    };
-
-    let currentWeek = 'Total';
-    let currentTableType = 'hitter';
-    let myChart;
 
     function updateView(v) {
         currentWeek = v;
-        document.querySelectorAll('.week-btn').forEach(b => b.classList.toggle('active', b.onclick.toString().includes(v)));
+        document.querySelectorAll('.week-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('onclick').includes(`'${v}'`));
+        });
         renderDashboard();
     }
 
@@ -207,15 +353,25 @@
         const currentData = calculatedData[currentWeek];
         const ctx = document.getElementById('statChart').getContext('2d');
         const set = { ...currentData.hitter, ...currentData.pitcher };
-        const combined = rawData.teams.map((name, i) => ({ name, val: set[stat][i] }));
-        const lowGood = ['ERA', 'WHIP', 'K_H'].includes(stat);
+        
+        const combined = teamList.map((name, i) => ({ name, val: set[stat][i] }));
+        const lowGood = ['ERA', 'WHIP', 'K'].includes(stat);
         combined.sort((a, b) => lowGood ? a.val - b.val : b.val - a.val);
 
         if (myChart) myChart.destroy();
         myChart = new Chart(ctx, {
             type: 'bar',
-            data: { labels: combined.map(d => d.name), datasets: [{ data: combined.map(d => d.val), backgroundColor: combined.map((d, i) => getGrad(i + 1, 14)), borderRadius: 8 }] },
-            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'right', color: '#1e293b', font: { weight: '800' } } } }
+            data: { 
+                labels: combined.map(d => d.name), 
+                datasets: [{ data: combined.map(d => d.val), backgroundColor: combined.map((d, i) => getGrad(i + 1, 14)), borderRadius: 8 }] 
+            },
+            options: { 
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { display: false }, 
+                    datalabels: { anchor: 'end', align: 'right', color: '#1e293b', font: { weight: '800' }, formatter: (value) => formatValue(stat, value) } 
+                } 
+            }
         });
         renderTable();
     }
@@ -225,13 +381,14 @@
         const set = currentTableType === 'hitter' ? currentData.hitter : currentData.pitcher;
         const keys = Object.keys(set);
         let html = '<table><thead><tr><th>Team Name</th>' + keys.map(k => `<th>${k}</th>`).join('') + '</tr></thead><tbody>';
-        rawData.teams.forEach((name, idx) => {
-            const info = leagueStandings.find(s => s.name === name);
+        
+        teamList.forEach((name, idx) => {
+            const info = teamsDB[name];
             html += `<tr><td style="text-align:left; font-weight:800; padding-left:15px;">${name} <span class="division-tag ${info.div === '현석' ? 'hs-tag' : 'jh-tag'}">${info.div}</span></td>`;
             keys.forEach(k => {
                 const val = set[k][idx];
-                const r = [...set[k]].sort((a, b) => (['ERA', 'WHIP', 'K_H'].includes(k)) ? a - b : b - a).indexOf(val) + 1;
-                html += `<td><div class="rank-cell" style="background:${getGrad(r, 14)};"><span class="stat-val">${val}</span><span class="rank-info">${r}위</span></div></td>`;
+                const r = [...set[k]].sort((a, b) => (['ERA', 'WHIP', 'K'].includes(k)) ? a - b : b - a).indexOf(val) + 1;
+                html += `<td><div class="rank-cell" style="background:${getGrad(r, 14)};"><span class="stat-val">${formatValue(k, val)}</span><span class="rank-info">${r}위</span></div></td>`;
             });
             html += '</tr>';
         });
@@ -240,11 +397,23 @@
 
     window.onload = () => {
         const pow = calcManagerPower();
-        document.getElementById('managerTop3').innerHTML = pow.slice(0, 3).map((m, i) => `
+        // 운영 실력 TOP 3 카드
+        document.getElementById('managerTop3').innerHTML = [...pow].sort((a,b)=>b.score-a.score).slice(0, 3).map((m, i) => `
             <div class="manager-card"><span class="top-label">운영 실력 ${i+1}위</span><span class="team-name">${m.name}</span><div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score.toFixed(1)}</div></div>
         `).join('');
-        document.getElementById('standingsBody').innerHTML = pow.sort((a, b) => a.rank - b.rank).map(s => `
-            <tr><td>${s.rank}</td><td style="text-align:left;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td><td>${s.div} 리그</td><td>${s.wlt}</td><td>${s.pct.toFixed(3)}</td><td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score.toFixed(1)}</td></tr>
+        
+        // 실제 리그 Rank(1등~14등) 순으로 오버롤 테이블 정렬
+        const sortedStandings = [...pow].sort((a, b) => a.rank - b.rank);
+        document.getElementById('standingsBody').innerHTML = sortedStandings.map(s => `
+            <tr>
+                <td>${s.rank}</td>
+                <td style="text-align:left; padding-left:15px;">${s.name} <span class="division-tag ${s.div === '현석' ? 'hs-tag' : 'jh-tag'}">${s.div}</span></td>
+                <td>${s.div} 리그</td>
+                <td>${s.wlt}</td>
+                <td>${s.pct.toFixed(3)}</td>
+                <td style="color:${s.score > 0 ? '#ef4444' : '#3b82f6'}">${s.score > 0 ? '+' : ''}${s.score.toFixed(1)}</td>
+                <td style="font-weight: 800; color: #0f172a;">${s.rotoRank}위</td>
+            </tr>
         `).join('');
         renderDashboard();
     };
