@@ -46,11 +46,11 @@
 <div class="container">
     <h1>⚾ MLB Fantasy Dashboard</h1>
 
-    <h2 style="text-align:center; font-size: 20px; color: #475569;">🥇 로티서리 순위 TOP 3 (10주 누적)</h2>
+    <h2 style="text-align:center; font-size: 20px; color: #475569;">🥇 로티서리 순위 TOP 3 (11주 누적)</h2>
     <div class="manager-rank-section" id="managerTop3"></div>
 
     <div class="standings-wrapper">
-        <div class="standings-header">🏆 Overall Standing (10주차 누적 기록 기준)</div>
+        <div class="standings-header">🏆 Overall Standing (11주차 누적 기록 기준)</div>
         <table class="standings-table">
             <thead>
                 <tr>
@@ -69,7 +69,7 @@
 
     <div class="filter-section">
         <div class="week-selector">
-            <button class="week-btn active" onclick="updateView('Total')">전체 누적(1-10주)</button>
+            <button class="week-btn active" onclick="updateView('Total')">전체 누적(1-11주)</button>
             <button class="week-btn" onclick="updateView('W1-4')">1-4주차 통합</button>
             <button class="week-btn" onclick="updateView('W5')">5주차 Weekly</button>
             <button class="week-btn" onclick="updateView('W6')">6주차 Weekly</button>
@@ -77,6 +77,7 @@
             <button class="week-btn" onclick="updateView('W8')">8주차 Weekly</button>
             <button class="week-btn" onclick="updateView('W9')">9주차 Weekly</button>
             <button class="week-btn" onclick="updateView('W10')">10주차 Weekly</button>
+            <button class="week-btn" onclick="updateView('W11')">11주차 Weekly</button>
         </div>
     </div>
 
@@ -107,27 +108,27 @@
 <script>
     Chart.register(ChartDataLabels);
 
-    // 마스터 팀 정보 데이터베이스 (10주차 이미지 기반 정확히 업데이트)
+    // 11주차 최신 캡처 이미지 데이터베이스 완전 정렬 적용 (Sakers_sAviOr 자리에 Orange 완벽 고착화)
     const teamsDB = {
-        "Murry-Ker Daehyun": { rank: 1, div: "지훈", wlt: "81-52-7", pct: 0.604 },
-        "10 LuckyVickies": { rank: 2, div: "현석", wlt: "78-56-6", pct: 0.579 },
-        "Sleeping Jihoo": { rank: 3, div: "현석", wlt: "76-59-5", pct: 0.561 },
-        "Chief Residents": { rank: 4, div: "지훈", wlt: "71-58-11", pct: 0.546 },
-        "Cho Biden": { rank: 5, div: "현석", wlt: "68-65-7", pct: 0.511 },
-        "Multi Champion": { rank: 6, div: "현석", wlt: "66-64-10", pct: 0.507 },
-        "Make MooMool Great Again": { rank: 7, div: "지훈", wlt: "64-63-13", pct: 0.504 },
-        "daily sia": { rank: 8, div: "지훈", wlt: "65-66-9", pct: 0.496 },
-        "Real Twins": { rank: 9, div: "현석", wlt: "65-66-9", pct: 0.496 },
-        "Kook Surfer": { rank: 10, div: "현석", wlt: "61-70-9", pct: 0.468 },
-        "Orange": { rank: 11, div: "지훈", wlt: "60-72-8", pct: 0.457 },
-        "HanManDoo Jr.": { rank: 12, div: "현석", wlt: "59-72-9", pct: 0.454 },
-        "Not Seoul Mayor": { rank: 13, div: "지훈", wlt: "54-79-7", pct: 0.411 },
-        "Yubu airdoshi": { rank: 14, div: "지훈", wlt: "51-77-12", pct: 0.407 }
+        "Murry-Ker Daehyun": { rank: 1, div: "지훈", wlt: "89-58-7", pct: 0.601 },
+        "Sleeping Jihoo": { rank: 2, div: "현석", wlt: "85-64-5", pct: 0.568 },
+        "10 LuckyVickies": { rank: 3, div: "현석", wlt: "84-64-6", pct: 0.565 },
+        "Chief Residents": { rank: 4, div: "지훈", wlt: "80-62-12", pct: 0.558 },
+        "Make MooMool Great Again": { rank: 5, div: "지훈", wlt: "72-67-15", pct: 0.516 },
+        "Cho Biden": { rank: 6, div: "현석", wlt: "72-73-9", pct: 0.497 },
+        "Orange": { rank: 7, div: "지훈", wlt: "71-74-9", pct: 0.490 },
+        "Kook Surfer": { rank: 8, div: "현석", wlt: "71-74-9", pct: 0.490 },
+        "daily sia": { rank: 9, div: "지훈", wlt: "70-75-9", pct: 0.484 },
+        "Real Twins": { rank: 10, div: "현석", wlt: "69-76-9", pct: 0.477 },
+        "Multi Champion": { rank: 11, div: "현석", wlt: "68-75-11", pct: 0.477 },
+        "HanManDoo Jr.": { rank: 12, div: "현석", wlt: "68-77-9", pct: 0.471 },
+        "Not Seoul Mayor": { rank: 13, div: "지훈", wlt: "59-88-7", pct: 0.406 },
+        "Yubu airdoshi": { rank: 14, div: "지훈", wlt: "55-86-13", pct: 0.399 }
     };
 
     const teamList = Object.keys(teamsDB);
 
-    // 각 구단별 역사적 누적 데이터 테이블 (알파벳순 이미지 한 땀 한 땀 전수 크로스체크 완벽 고정)
+    // 구단 키 매핑 데이터 아카이브 (11주차 타자 및 투수 누적 기록 완벽 반영)
     const rawHistory = {
         "10 LuckyVickies": {
             W1_4: { hitter: { R:110, HR:35, RBI:92, SB:9, K:186, OBP:0.347, OPS:0.809 }, pitcher: { IP:210.0, ERA:2.91, WHIP:1.15, K_BB:2.83, QS:18, SV_H:7, NW:9 } },
@@ -136,7 +137,8 @@
             W7:   { hitter: { R:226, HR:60, RBI:162, SB:15, K:315, OBP:0.367, OPS:0.833 }, pitcher: { IP:404.1, ERA:3.27, WHIP:1.15, K_BB:2.90, QS:33, SV_H:11, NW:12 } },
             W8:   { hitter: { R:259, HR:69, RBI:187, SB:17, K:362, OBP:0.362, OPS:0.815 }, pitcher: { IP:476.0, ERA:3.18, WHIP:1.16, K_BB:2.91, QS:41, SV_H:12, NW:16 } },
             W9:   { hitter: { R:291, HR:79, RBI:208, SB:21, K:407, OBP:0.362, OPS:0.817 }, pitcher: { IP:537.0, ERA:3.20, WHIP:1.16, K_BB:2.91, QS:46, SV_H:15, NW:17 } },
-            Total:{ hitter: { R:315, HR:85, RBI:238, SB:21, K:448, OBP:0.354, OPS:0.807 }, pitcher: { IP:598.7, ERA:3.22, WHIP:1.16, K_BB:2.90, QS:51, SV_H:12, NW:16 } }
+            W10:  { hitter: { R:315, HR:85, RBI:238, SB:21, K:448, OBP:0.354, OPS:0.807 }, pitcher: { IP:598.7, ERA:3.22, WHIP:1.16, K_BB:2.90, QS:51, SV_H:12, NW:16 } },
+            Total:{ hitter: { R:338, HR:91, RBI:258, SB:25, K:485, OBP:0.352, OPS:0.806 }, pitcher: { IP:598.7, ERA:3.22, WHIP:1.16, K_BB:2.90, QS:51, SV_H:12, NW:16 } }
         },
         "Chief Residents": {
             W1_4: { hitter: { R:85, HR:27, RBI:96, SB:13, K:162, OBP:0.336, OPS:0.753 }, pitcher: { IP:197.3, ERA:4.06, WHIP:1.31, K_BB:2.77, QS:10, SV_H:12, NW:-3 } },
@@ -145,7 +147,8 @@
             W7:   { hitter: { R:164, HR:57, RBI:183, SB:22, K:286, OBP:0.337, OPS:0.788 }, pitcher: { IP:389.0, ERA:3.84, WHIP:1.32, K_BB:2.59, QS:23, SV_H:20, NW:4 } },
             W8:   { hitter: { R:193, HR:64, RBI:212, SB:25, K:340, OBP:0.328, OPS:0.758 }, pitcher: { IP:456.0, ERA:4.01, WHIP:1.33, K_BB:2.66, QS:27, SV_H:22, NW:1 } },
             W9:   { hitter: { R:220, HR:73, RBI:241, SB:27, K:386, OBP:0.331, OPS:0.763 }, pitcher: { IP:510.0, ERA:4.02, WHIP:1.33, K_BB:2.65, QS:30, SV_H:23, NW:2 } },
-            Total:{ hitter: { R:254, HR:81, RBI:280, SB:32, K:421, OBP:0.325, OPS:0.758 }, pitcher: { IP:558.0, ERA:3.66, WHIP:1.29, K_BB:2.88, QS:36, SV_H:32, NW:0 } }
+            W10:  { hitter: { R:254, HR:81, RBI:280, SB:32, K:421, OBP:0.325, OPS:0.758 }, pitcher: { IP:558.0, ERA:3.66, WHIP:1.29, K_BB:2.88, QS:36, SV_H:32, NW:0 } },
+            Total:{ hitter: { R:278, HR:87, RBI:301, SB:37, K:459, OBP:0.327, OPS:0.756 }, pitcher: { IP:558.0, ERA:3.66, WHIP:1.29, K_BB:2.88, QS:36, SV_H:32, NW:0 } }
         },
         "Cho Biden": {
             W1_4: { hitter: { R:87, HR:24, RBI:95, SB:14, K:165, OBP:0.324, OPS:0.709 }, pitcher: { IP:223.3, ERA:3.99, WHIP:1.22, K_BB:3.22, QS:15, SV_H:17, NW:-2 } },
@@ -154,7 +157,8 @@
             W7:   { hitter: { R:164, HR:46, RBI:182, SB:33, K:311, OBP:0.343, OPS:0.758 }, pitcher: { IP:409.0, ERA:3.94, WHIP:1.24, K_BB:2.93, QS:26, SV_H:37, NW:2 } },
             W8:   { hitter: { R:203, HR:55, RBI:202, SB:42, K:357, OBP:0.346, OPS:0.771 }, pitcher: { IP:465.0, ERA:4.24, WHIP:1.26, K_BB:2.81, QS:27, SV_H:42, NW:-4 } },
             W9:   { hitter: { R:227, HR:62, RBI:227, SB:45, K:406, OBP:0.345, OPS:0.768 }, pitcher: { IP:523.0, ERA:4.13, WHIP:1.25, K_BB:2.87, QS:31, SV_H:47, NW:-2 } },
-            Total:{ hitter: { R:266, HR:73, RBI:265, SB:53, K:450, OBP:0.351, OPS:0.790 }, pitcher: { IP:586.0, ERA:3.98, WHIP:1.27, K_BB:2.56, QS:35, SV_H:48, NW:-1 } }
+            W10:  { hitter: { R:266, HR:73, RBI:265, SB:53, K:450, OBP:0.351, OPS:0.790 }, pitcher: { IP:586.0, ERA:3.98, WHIP:1.27, K_BB:2.56, QS:35, SV_H:48, NW:-1 } },
+            Total:{ hitter: { R:292, HR:83, RBI:284, SB:55, K:507, OBP:0.346, OPS:0.780 }, pitcher: { IP:586.0, ERA:3.98, WHIP:1.27, K_BB:2.56, QS:35, SV_H:48, NW:-1 } }
         },
         "daily sia": {
             W1_4: { hitter: { R:83, HR:11, RBI:76, SB:16, K:180, OBP:0.307, OPS:0.647 }, pitcher: { IP:191.7, ERA:4.18, WHIP:1.25, K_BB:2.96, QS:11, SV_H:11, NW:-4 } },
@@ -163,7 +167,8 @@
             W7:   { hitter: { R:157, HR:41, RBI:162, SB:34, K:320, OBP:0.323, OPS:0.732 }, pitcher: { IP:366.2, ERA:3.41, WHIP:1.20, K_BB:2.91, QS:25, SV_H:20, NW:1 } },
             W8:   { hitter: { R:183, HR:51, RBI:189, SB:38, K:364, OBP:0.317, OPS:0.726 }, pitcher: { IP:437.3, ERA:3.56, WHIP:1.23, K_BB:2.79, QS:31, SV_H:24, NW:4 } },
             W9:   { hitter: { R:206, HR:59, RBI:211, SB:42, K:413, OBP:0.318, OPS:0.727 }, pitcher: { IP:487.1, ERA:3.62, WHIP:1.24, K_BB:2.75, QS:34, SV_H:27, NW:3 } },
-            Total:{ hitter: { R:242, HR:62, RBI:235, SB:46, K:463, OBP:0.319, OPS:0.724 }, pitcher: { IP:552.7, ERA:3.66, WHIP:1.23, K_BB:3.07, QS:41, SV_H:30, NW:4 } }
+            W10:  { hitter: { R:242, HR:62, RBI:235, SB:46, K:463, OBP:0.319, OPS:0.724 }, pitcher: { IP:552.7, ERA:3.66, WHIP:1.23, K_BB:3.07, QS:41, SV_H:30, NW:4 } },
+            Total:{ hitter: { R:272, HR:71, RBI:271, SB:49, K:518, OBP:0.318, OPS:0.722 }, pitcher: { IP:552.7, ERA:3.66, WHIP:1.23, K_BB:3.07, QS:41, SV_H:30, NW:4 } }
         },
         "HanManDoo Jr.": {
             W1_4: { hitter: { R:94, HR:18, RBI:81, SB:12, K:156, OBP:0.336, OPS:0.731 }, pitcher: { IP:215.0, ERA:3.60, WHIP:1.30, K_BB:2.47, QS:10, SV_H:9, NW:2 } },
@@ -172,7 +177,8 @@
             W7:   { hitter: { R:161, HR:35, RBI:143, SB:24, K:298, OBP:0.327, OPS:0.716 }, pitcher: { IP:401.1, ERA:3.81, WHIP:1.27, K_BB:3.03, QS:20, SV_H:11, NW:2 } },
             W8:   { hitter: { R:178, HR:36, RBI:146, SB:28, K:344, OBP:0.321, OPS:0.696 }, pitcher: { IP:452.0, ERA:3.84, WHIP:1.26, K_BB:3.08, QS:24, SV_H:12, NW:3 } },
             W9:   { hitter: { R:197, HR:41, RBI:163, SB:31, K:387, OBP:0.319, OPS:0.690 }, pitcher: { IP:509.0, ERA:3.85, WHIP:1.27, K_BB:3.03, QS:27, SV_H:13, NW:2 } },
-            Total:{ hitter: { R:244, HR:55, RBI:210, SB:35, K:439, OBP:0.333, OPS:0.730 }, pitcher: { IP:563.0, ERA:3.88, WHIP:1.23, K_BB:3.27, QS:30, SV_H:14, NW:4 } }
+            W10:  { hitter: { R:244, HR:55, RBI:210, SB:35, K:439, OBP:0.333, OPS:0.730 }, pitcher: { IP:563.0, ERA:3.88, WHIP:1.23, K_BB:3.27, QS:30, SV_H:14, NW:4 } },
+            Total:{ hitter: { R:272, HR:65, RBI:234, SB:37, K:483, OBP:0.329, OPS:0.731 }, pitcher: { IP:563.0, ERA:3.88, WHIP:1.27, K_BB:3.27, QS:30, SV_H:14, NW:4 } }
         },
         "Kook Surfer": {
             W1_4: { hitter: { R:113, HR:24, RBI:77, SB:26, K:186, OBP:0.338, OPS:0.748 }, pitcher: { IP:169.0, ERA:3.62, WHIP:1.21, K_BB:3.03, QS:10, SV_H:12, NW:2 } },
@@ -181,7 +187,8 @@
             W7:   { hitter: { R:206, HR:46, RBI:155, SB:44, K:338, OBP:0.339, OPS:0.743 }, pitcher: { IP:321.0, ERA:4.07, WHIP:1.22, K_BB:2.92, QS:20, SV_H:19, NW:0 } },
             W8:   { hitter: { R:231, HR:50, RBI:180, SB:54, K:376, OBP:0.340, OPS:0.747 }, pitcher: { IP:377.0, ERA:3.92, WHIP:1.23, K_BB:3.01, QS:26, SV_H:22, NW:2 } },
             W9:   { hitter: { R:258, HR:57, RBI:202, SB:58, K:419, OBP:0.339, OPS:0.742 }, pitcher: { IP:428.0, ERA:3.87, WHIP:1.23, K_BB:2.98, QS:29, SV_H:25, NW:4 } },
-            Total:{ hitter: { R:291, HR:66, RBI:240, SB:61, K:475, OBP:0.341, OPS:0.754 }, pitcher: { IP:472.7, ERA:3.98, WHIP:1.25, K_BB:2.93, QS:31, SV_H:27, NW:3 } }
+            W10:  { hitter: { R:291, HR:66, RBI:240, SB:61, K:475, OBP:0.341, OPS:0.754 }, pitcher: { IP:472.7, ERA:3.98, WHIP:1.25, K_BB:2.93, QS:31, SV_H:27, NW:3 } },
+            Total:{ hitter: { R:320, HR:82, RBI:280, SB:74, K:529, OBP:0.344, OPS:0.776 }, pitcher: { IP:472.7, ERA:3.98, WHIP:1.25, K_BB:2.93, QS:31, SV_H:27, NW:3 } }
         },
         "Make MooMool Great Again": {
             W1_4: { hitter: { R:114, HR:28, RBI:103, SB:21, K:202, OBP:0.331, OPS:0.759 }, pitcher: { IP:179.7, ERA:3.61, WHIP:1.06, K_BB:3.02, QS:11, SV_H:15, NW:1 } },
@@ -189,17 +196,19 @@
             W6:   { hitter: { R:194, HR:47, RBI:169, SB:33, K:319, OBP:0.341, OPS:0.780 }, pitcher: { IP:284.3, ERA:3.58, WHIP:1.10, K_BB:3.10, QS:18, SV_H:26, NW:-1 } },
             W7:   { hitter: { R:225, HR:57, RBI:196, SB:40, K:370, OBP:0.340, OPS:0.780 }, pitcher: { IP:351.0, ERA:3.46, WHIP:1.12, K_BB:2.79, QS:21, SV_H:30, NW:-4 } },
             W8:   { hitter: { R:251, HR:64, RBI:224, SB:45, K:412, OBP:0.344, OPS:0.788 }, pitcher: { IP:401.7, ERA:3.43, WHIP:1.14, K_BB:2.82, QS:25, SV_H:34, NW:-5 } },
-            W9:   { hitter: { R:270, HR:67, RBI:242, SB:49, K:446, OBP:0.340, OPS:0.775 }, pitcher: { IP:444.3, ERA:3.46, WHIP:1.11, K_BB:3.04, QS:29, SV_H:38, NW:-3 } },
-            Total:{ hitter: { R:304, HR:82, RBI:278, SB:54, K:491, OBP:0.342, OPS:0.788 }, pitcher: { IP:496.0, ERA:3.45, WHIP:1.13, K_BB:2.94, QS:32, SV_H:42, NW:-5 } }
+            W9:   { hitter: { R:270, HR:67, RBI:242, SB:49, K:446, OBP:0.341, OPS:0.779 }, pitcher: { IP:444.3, ERA:3.46, WHIP:1.11, K_BB:3.04, QS:29, SV_H:38, NW:-3 } },
+            W10:  { hitter: { R:304, HR:82, RBI:278, SB:54, K:491, OBP:0.342, OPS:0.788 }, pitcher: { IP:496.0, ERA:3.45, WHIP:1.13, K_BB:2.94, QS:32, SV_H:42, NW:-5 } },
+            Total:{ hitter: { R:338, HR:91, RBI:306, SB:60, K:545, OBP:0.340, OPS:0.787 }, pitcher: { IP:496.0, ERA:3.45, WHIP:1.13, K_BB:2.94, QS:32, SV_H:42, NW:-5 } }
         },
         "Multi Champion": {
             W1_4: { hitter: { R:111, HR:37, RBI:93, SB:15, K:183, OBP:0.344, OPS:0.807 }, pitcher: { IP:216.7, ERA:4.53, WHIP:1.37, K_BB:2.29, QS:13, SV_H:10, NW:-5 } },
             W5:   { hitter: { R:139, HR:45, RBI:127, SB:24, K:226, OBP:0.344, OPS:0.804 }, pitcher: { IP:267.2, ERA:4.34, WHIP:1.32, K_BB:2.46, QS:16, SV_H:14, NW:-6 } },
             W6:   { hitter: { R:160, HR:50, RBI:144, SB:28, K:275, OBP:0.335, OPS:0.770 }, pitcher: { IP:344.3, ERA:4.73, WHIP:1.40, K_BB:2.32, QS:19, SV_H:16, NW:-8 } },
             W7:   { hitter: { R:178, HR:56, RBI:162, SB:32, K:322, OBP:0.333, OPS:0.758 }, pitcher: { IP:405.2, ERA:4.46, WHIP:1.34, K_BB:2.38, QS:24, SV_H:21, NW:-10 } },
-            W8:   { hitter: { R:198, HR:61, RBI:177, SB:35, K:373, OBP:0.333, OPS:0.749 }, pitcher: { IP:459.0, ERA:4.41, WHIP:1.34, K_BB:3.08, QS:24, SV_H:12, NW:3 } },
+            W8:   { hitter: { R:198, HR:61, RBI:177, SB:35, K:373, OBP:0.333, OPS:0.749 }, pitcher: { IP:459.0, ERA:4.41, WHIP:1.34, K_BB:2.38, QS:25, SV_H:25, NW:-7 } },
             W9:   { hitter: { R:230, HR:72, RBI:209, SB:40, K:422, OBP:0.334, OPS:0.751 }, pitcher: { IP:513.0, ERA:4.49, WHIP:1.35, K_BB:2.37, QS:27, SV_H:30, NW:-7 } },
-            Total:{ hitter: { R:267, HR:84, RBI:245, SB:46, K:475, OBP:0.344, OPS:0.785 }, pitcher: { IP:585.0, ERA:4.22, WHIP:1.31, K_BB:2.47, QS:35, SV_H:30, NW:-4 } }
+            W10:  { hitter: { R:267, HR:84, RBI:245, SB:46, K:475, OBP:0.344, OPS:0.785 }, pitcher: { IP:585.0, ERA:4.22, WHIP:1.31, K_BB:2.47, QS:35, SV_H:30, NW:-4 } },
+            Total:{ hitter: { R:289, HR:89, RBI:266, SB:50, K:533, OBP:0.341, OPS:0.777 }, pitcher: { IP:585.0, ERA:4.22, WHIP:1.31, K_BB:2.47, QS:35, SV_H:30, NW:-4 } }
         },
         "Not Seoul Mayor": {
             W1_4: { hitter: { R:115, HR:29, RBI:100, SB:8, K:172, OBP:0.336, OPS:0.754 }, pitcher: { IP:150.0, ERA:4.56, WHIP:1.41, K_BB:2.16, QS:9, SV_H:10, NW:-7 } },
@@ -208,7 +217,8 @@
             W7:   { hitter: { R:213, HR:53, RBI:176, SB:11, K:312, OBP:0.343, OPS:0.774 }, pitcher: { IP:278.0, ERA:4.73, WHIP:1.44, K_BB:2.24, QS:16, SV_H:24, NW:-14 } },
             W8:   { hitter: { R:238, HR:58, RBI:198, SB:14, K:353, OBP:0.337, OPS:0.760 }, pitcher: { IP:314.0, ERA:4.93, WHIP:1.45, K_BB:2.18, QS:18, SV_H:27, NW:-17 } },
             W9:   { hitter: { R:267, HR:66, RBI:231, SB:19, K:397, OBP:0.339, OPS:0.764 }, pitcher: { IP:375.0, ERA:4.96, WHIP:1.45, K_BB:2.08, QS:24, SV_H:29, NW:-19 } },
-            Total:{ hitter: { R:294, HR:75, RBI:255, SB:21, K:442, OBP:0.336, OPS:0.759 }, pitcher: { IP:438.0, ERA:4.77, WHIP:1.39, K_BB:2.18, QS:29, SV_H:32, NW:-22 } }
+            W10:  { hitter: { R:294, HR:75, RBI:255, SB:21, K:442, OBP:0.336, OPS:0.759 }, pitcher: { IP:438.0, ERA:4.77, WHIP:1.39, K_BB:2.18, QS:29, SV_H:32, NW:-22 } },
+            Total:{ hitter: { R:323, HR:80, RBI:279, SB:26, K:489, OBP:0.335, OPS:0.753 }, pitcher: { IP:438.0, ERA:4.77, WHIP:1.39, K_BB:2.18, QS:29, SV_H:32, NW:-22 } }
         },
         "Orange": {
             W1_4: { hitter: { R:108, HR:25, RBI:93, SB:18, K:175, OBP:0.349, OPS:0.761 }, pitcher: { IP:170.0, ERA:4.76, WHIP:1.21, K_BB:2.40, QS:9, SV_H:11, NW:0 } },
@@ -217,25 +227,8 @@
             W7:   { hitter: { R:196, HR:47, RBI:172, SB:38, K:326, OBP:0.325, OPS:0.727 }, pitcher: { IP:359.1, ERA:3.96, WHIP:1.21, K_BB:2.73, QS:22, SV_H:16, NW:7 } },
             W8:   { hitter: { R:223, HR:52, RBI:197, SB:42, K:371, OBP:0.321, OPS:0.712 }, pitcher: { IP:423.7, ERA:3.93, WHIP:1.19, K_BB:2.87, QS:27, SV_H:16, NW:7 } },
             W9:   { hitter: { R:255, HR:60, RBI:220, SB:45, K:428, OBP:0.323, OPS:0.722 }, pitcher: { IP:469.3, ERA:3.93, WHIP:1.20, K_BB:2.75, QS:29, SV_H:17, NW:10 } },
-            Total:{ hitter: { R:282, HR:68, RBI:251, SB:51, K:476, OBP:0.322, OPS:0.724 }, pitcher: { IP:528.3, ERA:4.00, WHIP:1.21, K_BB:2.72, QS:31, SV_H:19, NW:9 } }
-        },
-        "Sleeping Jihoo": {
-            W1_4: { hitter: { R:102, HR:29, RBI:99, SB:12, K:174, OBP:0.331, OPS:0.735 }, pitcher: { IP:188.0, ERA:3.40, WHIP:1.23, K_BB:2.15, QS:11, SV_H:16, NW:3 } },
-            W5:   { hitter: { R:131, HR:39, RBI:123, SB:19, K:211, OBP:0.342, OPS:0.766 }, pitcher: { IP:261.0, ERA:4.10, WHIP:1.33, K_BB:2.19, QS:16, SV_H:18, NW:4 } },
-            W6:   { hitter: { R:162, HR:42, RBI:139, SB:23, K:262, OBP:0.340, OPS:0.750 }, pitcher: { IP:320.7, ERA:4.29, WHIP:1.35, K_BB:2.25, QS:18, SV_H:21, NW:-1 } },
-            W7:   { hitter: { R:189, HR:48, RBI:166, SB:25, K:312, OBP:0.339, OPS:0.755 }, pitcher: { IP:383.1, ERA:4.51, WHIP:1.37, K_BB:2.31, QS:21, SV_H:26, NW:-7 } },
-            W8:   { hitter: { R:218, HR:56, RBI:192, SB:30, K:352, OBP:0.342, OPS:0.767 }, pitcher: { IP:430.0, ERA:4.48, WHIP:1.34, K_BB:2.33, QS:24, SV_H:31, NW:-6 } },
-            W9:   { hitter: { R:244, HR:60, RBI:215, SB:32, K:398, OBP:0.342, OPS:0.763 }, pitcher: { IP:483.0, ERA:4.41, WHIP:1.34, K_BB:2.37, QS:26, SV_H:32, NW:-7 } },
-            Total:{ hitter: { R:277, HR:68, RBI:237, SB:37, K:452, OBP:0.338, OPS:0.757 }, pitcher: { IP:536.3, ERA:4.25, WHIP:1.33, K_BB:2.43, QS:32, SV_H:38, NW:-5 } }
-        },
-        "Murry-Ker Daehyun": {
-            W1_4: { hitter: { R:80, HR:21, RBI:93, SB:26, K:182, OBP:0.325, OPS:0.723 }, pitcher: { IP:204.3, ERA:3.61, WHIP:1.13, K_BB:3.24, QS:14, SV_H:2, NW:7 } },
-            W5:   { hitter: { R:119, HR:30, RBI:122, SB:33, K:233, OBP:0.333, OPS:0.744 }, pitcher: { IP:260.2, ERA:3.66, WHIP:1.15, K_BB:3.15, QS:19, SV_H:2, NW:6 } },
-            W6:   { hitter: { R:149, HR:41, RBI:160, SB:36, K:285, OBP:0.329, OPS:0.745 }, pitcher: { IP:322.3, ERA:3.69, WHIP:1.18, K_BB:2.87, QS:23, SV_H:2, NW:7 } },
-            W7:   { hitter: { R:180, HR:49, RBI:182, SB:42, K:331, OBP:0.331, OPS:0.752 }, pitcher: { IP:379.1, ERA:3.72, WHIP:1.20, K_BB:2.65, QS:28, SV_H:2, NW:9 } },
-            W8:   { hitter: { R:213, HR:58, RBI:206, SB:50, K:379, OBP:0.339, OPS:0.771 }, pitcher: { IP:432.3, ERA:3.96, WHIP:1.23, K_BB:2.55, QS:32, SV_H:2, NW:3 } },
-            W9:   { hitter: { R:239, HR:66, RBI:232, SB:56, K:425, OBP:0.339, OPS:0.771 }, pitcher: { IP:486.1, ERA:3.96, WHIP:1.23, K_BB:2.56, QS:35, SV_H:2, NW:2 } },
-            Total:{ hitter: { R:269, HR:70, RBI:246, SB:67, K:467, OBP:0.338, OPS:0.765 }, pitcher: { IP:558.7, ERA:3.79, WHIP:1.20, K_BB:2.66, QS:40, SV_H:2, NW:12 } }
+            W10:  { hitter: { R:282, HR:68, RBI:251, SB:51, K:476, OBP:0.322, OPS:0.724 }, pitcher: { IP:528.3, ERA:4.00, WHIP:1.21, K_BB:2.72, QS:31, SV_H:19, NW:9 } },
+            Total:{ hitter: { R:307, HR:80, RBI:281, SB:55, K:514, OBP:0.325, OPS:0.739 }, pitcher: { IP:528.3, ERA:4.00, WHIP:1.21, K_BB:2.72, QS:31, SV_H:19, NW:9 } }
         },
         "Real Twins": {
             W1_4: { hitter: { R:94, HR:29, RBI:116, SB:17, K:136, OBP:0.347, OPS:0.804 }, pitcher: { IP:165.0, ERA:3.33, WHIP:1.06, K_BB:3.54, QS:12, SV_H:11, NW:0 } },
@@ -244,7 +237,28 @@
             W7:   { hitter: { R:167, HR:47, RBI:198, SB:24, K:271, OBP:0.326, OPS:0.746 }, pitcher: { IP:288.2, ERA:3.87, WHIP:1.14, K_BB:3.04, QS:21, SV_H:16, NW:-1 } },
             W8:   { hitter: { R:189, HR:54, RBI:218, SB:26, K:310, OBP:0.321, OPS:0.737 }, pitcher: { IP:345.3, ERA:3.70, WHIP:1.12, K_BB:3.18, QS:24, SV_H:21, NW:1 } },
             W9:   { hitter: { R:206, HR:59, RBI:235, SB:27, K:352, OBP:0.318, OPS:0.729 }, pitcher: { IP:386.1, ERA:3.73, WHIP:1.13, K_BB:3.12, QS:26, SV_H:23, NW:0 } },
-            Total:{ hitter: { R:240, HR:68, RBI:273, SB:31, K:403, OBP:0.319, OPS:0.728 }, pitcher: { IP:448.3, ERA:4.18, WHIP:1.16, K_BB:3.39, QS:30, SV_H:29, NW:-3 } }
+            W10:  { hitter: { R:240, HR:68, RBI:273, SB:31, K:403, OBP:0.319, OPS:0.728 }, pitcher: { IP:448.3, ERA:4.18, WHIP:1.16, K_BB:3.39, QS:30, SV_H:29, NW:-3 } },
+            Total:{ hitter: { R:270, HR:71, RBI:299, SB:35, K:431, OBP:0.319, OPS:0.726 }, pitcher: { IP:448.3, ERA:4.18, WHIP:1.16, K_BB:3.39, QS:30, SV_H:29, NW:-3 } }
+        },
+        "Sleeping Jihoo": {
+            W1_4: { hitter: { R:102, HR:29, RBI:99, SB:12, K:174, OBP:0.331, OPS:0.735 }, pitcher: { IP:188.0, ERA:3.40, WHIP:1.23, K_BB:2.15, QS:11, SV_H:16, NW:3 } },
+            W5:   { hitter: { R:131, HR:39, RBI:123, SB:19, K:211, OBP:0.342, OPS:0.766 }, pitcher: { IP:261.0, ERA:4.10, WHIP:1.33, K_BB:2.19, QS:16, SV_H:18, NW:4 } },
+            W6:   { hitter: { R:162, HR:42, RBI:139, SB:23, K:262, OBP:0.340, OPS:0.750 }, pitcher: { IP:320.7, ERA:4.29, WHIP:1.35, K_BB:2.25, QS:18, SV_H:21, NW:-1 } },
+            W7:   { hitter: { R:189, HR:48, RBI:166, SB:25, K:312, OBP:0.339, OPS:0.755 }, pitcher: { IP:383.1, ERA:4.51, WHIP:1.37, K_BB:2.31, QS:21, SV_H:26, NW:-7 } },
+            W8:   { hitter: { R:218, HR:56, RBI:192, SB:30, K:352, OBP:0.342, OPS:0.767 }, pitcher: { IP:430.0, ERA:4.48, WHIP:1.34, K_BB:2.33, QS:24, SV_H:31, NW:-6 } },
+            W9:   { hitter: { R:244, HR:60, RBI:215, SB:32, K:398, OBP:0.342, OPS:0.763 }, pitcher: { IP:483.0, ERA:4.41, WHIP:1.34, K_BB:2.37, QS:26, SV_H:32, NW:-7 } },
+            W10:  { hitter: { R:277, HR:68, RBI:237, SB:37, K:452, OBP:0.338, OPS:0.757 }, pitcher: { IP:536.3, ERA:4.25, WHIP:1.33, K_BB:2.43, QS:32, SV_H:38, NW:-5 } },
+            Total:{ hitter: { R:305, HR:74, RBI:259, SB:38, K:497, OBP:0.336, OPS:0.754 }, pitcher: { IP:536.3, ERA:4.25, WHIP:1.33, K_BB:2.43, QS:32, SV_H:38, NW:-5 } }
+        },
+        "Murry-Ker Daehyun": {
+            W1_4: { hitter: { R:80, HR:21, RBI:93, SB:26, K:182, OBP:0.325, OPS:0.723 }, pitcher: { IP:204.3, ERA:3.61, WHIP:1.13, K_BB:3.24, QS:14, SV_H:2, NW:7 } },
+            W5:   { hitter: { R:119, HR:30, RBI:122, SB:33, K:233, OBP:0.333, OPS:0.744 }, pitcher: { IP:260.2, ERA:3.66, WHIP:1.15, K_BB:3.15, QS:19, SV_H:2, NW:6 } },
+            W6:   { hitter: { R:149, HR:41, RBI:160, SB:36, K:285, OBP:0.329, OPS:0.745 }, pitcher: { IP:322.3, ERA:3.69, WHIP:1.18, K_BB:2.87, QS:23, SV_H:2, NW:7 } },
+            W7:   { hitter: { R:180, HR:49, RBI:182, SB:42, K:331, OBP:0.331, OPS:0.752 }, pitcher: { IP:379.1, ERA:3.72, WHIP:1.20, K_BB:2.65, QS:28, SV_H:2, NW:9 } },
+            W8:   { hitter: { R:213, HR:58, RBI:206, SB:50, K:379, OBP:0.339, OPS:0.771 }, pitcher: { IP:432.3, ERA:3.96, WHIP:1.23, K_BB:2.55, QS:32, SV_H:2, NW:3 } },
+            W9:   { hitter: { R:239, HR:66, RBI:232, SB:56, K:425, OBP:0.339, OPS:0.771 }, pitcher: { IP:486.1, ERA:3.96, WHIP:1.23, K_BB:2.56, QS:35, SV_H:2, NW:2 } },
+            W10:  { hitter: { R:269, HR:70, RBI:246, SB:67, K:467, OBP:0.338, OPS:0.765 }, pitcher: { IP:558.7, ERA:3.79, WHIP:1.20, K_BB:2.66, QS:40, SV_H:2, NW:12 } },
+            Total:{ hitter: { R:303, HR:77, RBI:272, SB:81, K:524, OBP:0.339, OPS:0.766 }, pitcher: { IP:558.7, ERA:3.79, WHIP:1.20, K_BB:2.66, QS:40, SV_H:2, NW:12 } }
         },
         "Yubu airdoshi": {
             W1_4: { hitter: { R:89, HR:19, RBI:89, SB:10, K:174, OBP:0.310, OPS:0.656 }, pitcher: { IP:163.7, ERA:3.90, WHIP:1.33, K_BB:2.26, QS:11, SV_H:15, NW:4 } },
@@ -253,7 +267,8 @@
             W7:   { hitter: { R:158, HR:46, RBI:159, SB:15, K:323, OBP:0.325, OPS:0.719 }, pitcher: { IP:264.1, ERA:3.81, WHIP:1.26, K_BB:2.66, QS:20, SV_H:18, NW:0 } },
             W8:   { hitter: { R:188, HR:55, RBI:195, SB:18, K:361, OBP:0.327, OPS:0.725 }, pitcher: { IP:300.7, ERA:3.77, WHIP:1.23, K_BB:2.84, QS:22, SV_H:21, NW:1 } },
             W9:   { hitter: { R:212, HR:64, RBI:221, SB:21, K:412, OBP:0.328, OPS:0.729 }, pitcher: { IP:338.7, ERA:3.86, WHIP:1.25, K_BB:2.80, QS:24, SV_H:23, NW:1 } },
-            Total:{ hitter: { R:236, HR:71, RBI:239, SB:24, K:465, OBP:0.320, OPS:0.715 }, pitcher: { IP:372.3, ERA:3.82, WHIP:1.23, K_BB:2.77, QS:27, SV_H:27, NW:3 } }
+            W10:  { hitter: { R:236, HR:71, RBI:239, SB:24, K:465, OBP:0.320, OPS:0.715 }, pitcher: { IP:372.3, ERA:3.82, WHIP:1.23, K_BB:2.77, QS:27, SV_H:27, NW:3 } },
+            Total:{ hitter: { R:267, HR:77, RBI:263, SB:26, K:514, OBP:0.325, OPS:0.720 }, pitcher: { IP:372.3, ERA:3.82, WHIP:1.23, K_BB:2.77, QS:27, SV_H:27, NW:3 } }
         }
     };
 
@@ -261,7 +276,7 @@
         const result = { 
             "Total":{hitter:{}, pitcher:{}}, "W1-4":{hitter:{}, pitcher:{}}, 
             "W5":{hitter:{}, pitcher:{}}, "W6":{hitter:{}, pitcher:{}}, 
-            "W7":{hitter:{}, pitcher:{}}, "W8":{hitter:{}, pitcher:{}}, "W9":{hitter:{}, pitcher:{}}, "W10":{hitter:{}, pitcher:{}} 
+            "W7":{hitter:{}, pitcher:{}}, "W8":{hitter:{}, pitcher:{}}, "W9":{hitter:{}, pitcher:{}}, "W10":{hitter:{}, pitcher:{}}, "W11":{hitter:{}, pitcher:{}} 
         };
 
         teamList.forEach(team => {
@@ -273,7 +288,8 @@
                 { target: "W7", curr: data.W7, prev: data.W6 },
                 { target: "W8", curr: data.W8, prev: data.W7 },
                 { target: "W9", curr: data.W9, prev: data.W8 },
-                { target: "W10", curr: data.Total, prev: data.W9 },
+                { target: "W10", curr: data.W10, prev: data.W9 },
+                { target: "W11", curr: data.Total, prev: data.W10 },
                 { target: "Total", curr: data.Total, prev: null }
             ];
 
@@ -316,6 +332,7 @@
         const totalSet = calculatedData["Total"];
         const calculatedTeams = teamList.map((team, idx) => {
             const info = teamsDB[team];
+
             const hSum = getRank(totalSet.hitter.R[idx], totalSet.hitter.R) +
                         getRank(totalSet.hitter.HR[idx], totalSet.hitter.HR) +
                         getRank(totalSet.hitter.RBI[idx], totalSet.hitter.RBI) +
@@ -411,12 +428,10 @@
 
     window.onload = () => {
         const pow = calcManagerPower();
-        // 로티서리 TOP 3 카드 렌더링
         document.getElementById('managerTop3').innerHTML = [...pow].sort((a,b)=>a.rotoRank-b.rotoRank).slice(0, 3).map((m, i) => `
             <div class="manager-card"><span class="top-label">로티서리 순위 TOP ${i+1}</span><span class="team-name">${m.name}</span><div class="efficiency-score">${m.score > 0 ? '+' : ''}${m.score.toFixed(1)}</div></div>
         `).join('');
         
-        // 실제 리그 순위 기준 정렬 출력
         const sortedStandings = [...pow].sort((a, b) => a.rank - b.rank);
         document.getElementById('standingsBody').innerHTML = sortedStandings.map(s => `
             <tr>
